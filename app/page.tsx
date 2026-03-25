@@ -67,6 +67,7 @@ const defaultInsights: Insights = {
 }
 
 export default function Dashboard() {
+  const [hasMounted, setHasMounted] = useState(false)
   const [isLive, setIsLive] = useState(false)
   const [hideTranscript, setHideTranscript] = useState(false)
   const [foldQuestions, setFoldQuestions] = useState(false)
@@ -83,7 +84,21 @@ export default function Dashboard() {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const fullTranscriptRef = useRef<string>('')
 
-  const analyzeTranscript = useCallback(async (text: string) => {
+  useEffect(() => { setHasMounted(true) }, [])
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [])
+
+  if (!hasMounted) return null
+
+  const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
+  const secs = String(seconds % 60).padStart(2, '0')
+
+  const analyzeTranscript = async (text: string) => {
     if (!text.trim() || text.length < 50) return
     setIsAnalyzing(true)
     try {
@@ -93,31 +108,34 @@ export default function Dashboard() {
         body: JSON.stringify({ transcript: text }),
       })
       const data = await res.json()
-      if (!data.error) setInsights(data)
+if (!data.error) {
+  setInsights({
+    ...defaultInsights,
+    ...data,
+    hotTopics: Array.isArray(data.hotTopics) ? data.hotTopics : defaultInsights.hotTopics,
+    objections: Array.isArray(data.objections) ? data.objections : defaultInsights.objections,
+    keyQuestions: Array.isArray(data.keyQuestions) ? data.keyQuestions : defaultInsights.keyQuestions,
+    nextActions: Array.isArray(data.nextActions) ? data.nextActions : defaultInsights.nextActions,
+    customerNeeds: Array.isArray(data.customerNeeds) ? data.customerNeeds : defaultInsights.customerNeeds,
+  })
+}
     } catch (err) {
       console.error('Analysis error:', err)
     }
     setIsAnalyzing(false)
-  }, [])
+  }
 
-  const processChunk = useCallback(async (blob: Blob) => {
+  const processChunk = async (blob: Blob) => {
     if (blob.size < 1000) return
     try {
       const formData = new FormData()
       formData.append('audio', blob, 'chunk.webm')
-      const res = await fetch('/api/transcribe', {
-        method: 'POST',
-        body: formData,
-      })
+      const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
       const data = await res.json()
       if (data.transcript) {
         fullTranscriptRef.current += ' ' + data.transcript
-
         if (data.utterances && data.utterances.length > 0) {
-          const newLines: TranscriptLine[] = data.utterances.map((u: any) => ({
-            speaker: u.speaker || 0,
-            text: u.text,
-          }))
+          const newLines: TranscriptLine[] = data.utterances.map((u: any) => ({ speaker: u.speaker || 0, text: u.text }))
           setTranscript(prev => [...prev.slice(-10), ...newLines])
         } else {
           setTranscript(prev => [...prev.slice(-10), { speaker: 0, text: data.transcript }])
@@ -127,9 +145,9 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Transcription error:', err)
     }
-  }, [analyzeTranscript])
+  }
 
-  const startCall = useCallback(async () => {
+  const startCall = async () => {
     setMicError('')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -155,39 +173,26 @@ export default function Dashboard() {
           chunksRef.current = []
           processChunk(blob)
         }
-      }, 20000)
+      }, 8000)
 
     } catch (err) {
       setMicError('Microphone access denied. Please allow microphone access and try again.')
-      console.error('Mic error:', err)
     }
-  }, [processChunk])
+  }
 
-  const endCall = useCallback(() => {
+  const endCall = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop()
       mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop())
     }
     if (intervalRef.current) clearInterval(intervalRef.current)
     if (timerRef.current) clearInterval(timerRef.current)
-
     if (chunksRef.current.length > 0) {
       const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
       processChunk(blob)
     }
-
     setIsLive(false)
-  }, [processChunk])
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
-
-  const mins = String(Math.floor(seconds / 60)).padStart(2, '0')
-  const secs = String(seconds % 60).padStart(2, '0')
+  }
 
   const speakerColor = (speaker: number) => {
     const colors = ['#00e5a0', '#ffb020', '#4488ff', '#ff2d78']
@@ -218,9 +223,7 @@ export default function Dashboard() {
 
         {/* Sidebar */}
         <div style={{ width: 68, background: 'rgba(15,15,28,0.95)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 8, position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#000', marginBottom: 20, boxShadow: '0 0 20px rgba(0,229,160,0.25)', fontFamily: 'Syne, sans-serif' }}>
-            DF
-          </div>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#000', marginBottom: 20, boxShadow: '0 0 20px rgba(0,229,160,0.25)', fontFamily: 'Syne, sans-serif' }}>DF</div>
           {[{ icon: '⊞', active: true }, { icon: '◉', active: false }, { icon: '👤', active: false }, { icon: '▦', active: false }, { icon: '◎', active: false }].map((item, i) => (
             <div key={i} style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, cursor: 'pointer', background: item.active ? 'rgba(0,229,160,0.12)' : 'transparent', color: item.active ? '#00e5a0' : 'rgba(255,255,255,0.25)', border: item.active ? '1px solid rgba(0,229,160,0.2)' : '1px solid transparent' }}>
               {item.icon}
@@ -256,11 +259,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Mic error */}
           {micError && (
-            <div style={{ margin: '16px 24px 0', padding: '12px 16px', background: 'rgba(255,71,87,0.1)', border: '1px solid rgba(255,71,87,0.3)', borderRadius: 10, fontSize: 13, color: '#ff8a94' }}>
-              ⚠ {micError}
-            </div>
+            <div style={{ margin: '16px 24px 0', padding: '12px 16px', background: 'rgba(255,71,87,0.1)', border: '1px solid rgba(255,71,87,0.3)', borderRadius: 10, fontSize: 13, color: '#ff8a94' }}>⚠ {micError}</div>
           )}
 
           {/* Content */}
@@ -275,8 +275,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
-                      {isLive ? '🎙 RECORDING MICROPHONE' : 'READY TO START'}
-                      <span style={{ color: '#00e5a0', margin: '0 8px' }}>•</span> SESSION 04
+                      {isLive ? '🎙 RECORDING' : 'READY TO START'} <span style={{ color: '#00e5a0', margin: '0 8px' }}>•</span> SESSION 04
                     </div>
                     <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 6 }}>
                       ALI SALAMEH <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>| ApexNile</span>
@@ -285,13 +284,12 @@ export default function Dashboard() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
                     <div style={{ textAlign: 'center' }}>
-<div style={{ fontFamily: 'Syne, sans-serif', fontSize: 42, fontWeight: 800, color: isLive ? '#00e5a0' : 'rgba(255,255,255,0.5)', letterSpacing: -1, fontVariantNumeric: 'tabular-nums' }}>                        {mins}:{secs}
+                      <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 42, fontWeight: 800, color: isLive ? '#00e5a0' : 'rgba(255,255,255,0.5)', letterSpacing: -1, fontVariantNumeric: 'tabular-nums' }}>
+                        {mins}:{secs}
                       </div>
                       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>DURATION</div>
                     </div>
-                    <button
-                      onClick={isLive ? endCall : startCall}
-                      style={{ padding: '12px 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, background: isLive ? 'linear-gradient(135deg,#ff2d78,#ff6b35)' : 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: isLive ? '#fff' : '#000', boxShadow: isLive ? '0 4px 20px rgba(255,45,120,0.35)' : '0 4px 20px rgba(0,229,160,0.35)', transition: 'transform 0.15s', fontFamily: 'DM Sans, sans-serif' }}>
+                    <button onClick={isLive ? endCall : startCall} style={{ padding: '12px 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, background: isLive ? 'linear-gradient(135deg,#ff2d78,#ff6b35)' : 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: isLive ? '#fff' : '#000', boxShadow: isLive ? '0 4px 20px rgba(255,45,120,0.35)' : '0 4px 20px rgba(0,229,160,0.35)', fontFamily: 'DM Sans, sans-serif' }}>
                       {isLive ? '⏹ End Call' : '▶ Start Call'}
                     </button>
                   </div>
@@ -327,9 +325,7 @@ export default function Dashboard() {
                 <div style={{ ...card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', alignSelf: 'flex-start' }}>DEAL HEALTH SCORE</div>
                   <GaugeCircle value={insights.dealHealthScore} color="#ffb020" size={76} stroke={6} />
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#ffb020' }}>
-                    {insights.dealHealthScore >= 80 ? 'Strong Progress' : insights.dealHealthScore >= 60 ? 'On Track' : 'Needs Attention'}
-                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#ffb020' }}>{insights.dealHealthScore >= 80 ? 'Strong Progress' : insights.dealHealthScore >= 60 ? 'On Track' : 'Needs Attention'}</div>
                 </div>
               </div>
 
@@ -346,7 +342,7 @@ export default function Dashboard() {
                         { color: '#00e5a0', bg: 'rgba(0,229,160,0.12)', border: 'rgba(0,229,160,0.25)' },
                       ]
                       const c = colors[i % colors.length]
-                      return <span key={i} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: c.bg, color: c.color, border: `1px solid ${c.border}`, animation: 'fadeIn 0.3s ease' }}>{t}</span>
+                      return <span key={i} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: c.bg, color: c.color, border: `1px solid ${c.border}` }}>{t}</span>
                     })}
                   </div>
                 </div>
@@ -355,11 +351,12 @@ export default function Dashboard() {
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4757', animation: isLive ? 'pulse 2s infinite' : 'none' }} />
                     OBJECTIONS DETECTED
                   </div>
-                  {insights.objections.length === 0 ? (
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>No objections detected yet</div>
-                  ) : insights.objections.map((o, i) => (
-                    <div key={i} style={{ background: 'rgba(255,71,87,0.08)', borderLeft: '2px solid #ff4757', borderRadius: '0 8px 8px 0', padding: '8px 12px', fontSize: 12, color: 'rgba(255,180,185,0.9)', marginBottom: 8, animation: 'fadeIn 0.3s ease' }}>{o}</div>
-                  ))}
+                  {insights.objections.length === 0
+                    ? <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>No objections detected yet</div>
+                    : insights.objections.map((o, i) => (
+                      <div key={i} style={{ background: 'rgba(255,71,87,0.08)', borderLeft: '2px solid #ff4757', borderRadius: '0 8px 8px 0', padding: '8px 12px', fontSize: 12, color: 'rgba(255,180,185,0.9)', marginBottom: 8 }}>{o}</div>
+                    ))
+                  }
                 </div>
               </div>
 
@@ -372,7 +369,7 @@ export default function Dashboard() {
                   </button>
                 </div>
                 {!foldQuestions && insights.keyQuestions.map((q, i) => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderLeft: '2px solid #a855f7', borderRadius: '0 8px 8px 0', padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 8, cursor: 'pointer', transition: 'all 0.2s', animation: 'fadeIn 0.3s ease' }}
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderLeft: '2px solid #a855f7', borderRadius: '0 8px 8px 0', padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 8, cursor: 'pointer', transition: 'all 0.2s' }}
                     onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = 'rgba(255,255,255,0.08)'; el.style.color = '#fff'; el.style.borderLeftColor = '#00e5a0'; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = 'rgba(255,255,255,0.04)'; el.style.color = 'rgba(255,255,255,0.6)'; el.style.borderLeftColor = '#a855f7'; }}
                   >{q}</div>
@@ -399,18 +396,15 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, lineHeight: 1.8, maxHeight: 200, overflowY: 'auto' }}>
-                    {transcript.length === 0 ? (
-                      <div style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>
-                        {isLive ? 'Listening... transcript will appear shortly' : 'Start a call to see live transcript'}
-                      </div>
-                    ) : transcript.map((line, i) => (
-                      <div key={i} style={{ animation: 'fadeIn 0.3s ease' }}>
-                        <span style={{ color: speakerColor(line.speaker), fontWeight: 700, marginRight: 8 }}>
-                          Speaker {line.speaker + 1}:
-                        </span>
-                        <span style={{ color: 'rgba(255,255,255,0.65)' }}>{line.text}</span>
-                      </div>
-                    ))}
+                    {transcript.length === 0
+                      ? <div style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>{isLive ? 'Listening... transcript will appear in 8 seconds' : 'Start a call to see live transcript'}</div>
+                      : transcript.map((line, i) => (
+                        <div key={i}>
+                          <span style={{ color: speakerColor(line.speaker), fontWeight: 700, marginRight: 8 }}>Speaker {line.speaker + 1}:</span>
+                          <span style={{ color: 'rgba(255,255,255,0.65)' }}>{line.text}</span>
+                        </div>
+                      ))
+                    }
                   </div>
                 </div>
               )}
@@ -418,7 +412,7 @@ export default function Dashboard() {
               {/* Toggle */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setHideTranscript(!hideTranscript)}>
                 <div style={{ width: 40, height: 22, borderRadius: 11, background: !hideTranscript ? '#00e5a0' : 'rgba(255,255,255,0.1)', padding: 3, transition: 'background 0.25s' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'transform 0.25s', transform: hideTranscript ? 'translateX(0)' : 'translateX(18px)' }} />
+                  <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'transform 0.25s', transform: hideTranscript ? 'translateX(0)' : 'translateX(18px)' }} />
                 </div>
                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>Hide Live Transcript</span>
               </div>
@@ -431,7 +425,7 @@ export default function Dashboard() {
               <div style={card}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>SUGGESTED NEXT ACTIONS</div>
                 {insights.nextActions.map((a, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${i === 0 ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'}`, background: i === 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,255,255,0.03)', color: i === 0 ? '#00e5a0' : 'rgba(255,255,255,0.55)', fontSize: 13, marginBottom: 8, cursor: 'pointer', animation: 'fadeIn 0.3s ease' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${i === 0 ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'}`, background: i === 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,255,255,0.03)', color: i === 0 ? '#00e5a0' : 'rgba(255,255,255,0.55)', fontSize: 13, marginBottom: 8, cursor: 'pointer' }}>
                     <span style={{ marginTop: 1 }}>{i === 0 ? '⚡' : '○'}</span>
                     <span>{a}</span>
                   </div>
@@ -443,7 +437,7 @@ export default function Dashboard() {
                 {insights.customerNeeds.map((n, i) => {
                   const colors = ['#ffb020', '#4488ff', '#ff2d78']
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 8, animation: 'fadeIn 0.3s ease' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 8 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: colors[i % colors.length], boxShadow: `0 0 8px ${colors[i % colors.length]}`, flexShrink: 0 }} />
                       {n}
                     </div>
@@ -457,7 +451,7 @@ export default function Dashboard() {
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#a855f7,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>✦</div>
                 </div>
                 {insights.notes && (
-                  <div style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.15)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 10, lineHeight: 1.6, animation: 'fadeIn 0.3s ease' }}>
+                  <div style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.15)', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 10, lineHeight: 1.6 }}>
                     <span style={{ color: '#00e5a0', fontWeight: 700, fontSize: 10 }}>AI SUMMARY · </span>
                     {insights.notes}
                   </div>
