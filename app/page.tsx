@@ -247,11 +247,17 @@ if (user) {
         {/* Sidebar */}
         <div style={{ width: 68, background: 'rgba(15,15,28,0.95)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 8, position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#000', marginBottom: 20, boxShadow: '0 0 20px rgba(0,229,160,0.25)', fontFamily: 'Syne, sans-serif' }}>DF</div>
-          {[{ icon: '⊞', active: true }, { icon: '◉', active: false }, { icon: '👤', active: false }, { icon: '▦', active: false }, { icon: '◎', active: false }].map((item, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, cursor: 'pointer', background: item.active ? 'rgba(0,229,160,0.12)' : 'transparent', color: item.active ? '#00e5a0' : 'rgba(255,255,255,0.25)', border: item.active ? '1px solid rgba(0,229,160,0.2)' : '1px solid transparent' }}>
-              {item.icon}
-            </div>
-          ))}
+         {[
+  { icon: '⊞', active: true, href: '/' },
+  { icon: '◉', active: false, href: '/history' },
+  { icon: '👤', active: false, href: '/' },
+  { icon: '▦', active: false, href: '/' },
+  { icon: '◎', active: false, href: '/' },
+].map((item, i) => (
+  <div key={i} onClick={() => window.location.href = item.href} style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, cursor: 'pointer', background: item.active ? 'rgba(0,229,160,0.12)' : 'transparent', color: item.active ? '#00e5a0' : 'rgba(255,255,255,0.25)', border: item.active ? '1px solid rgba(0,229,160,0.2)' : '1px solid transparent' }}>
+    {item.icon}
+  </div>
+))}
         </div>
 
         {/* Main */}
