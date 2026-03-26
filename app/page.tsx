@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createClient } from '@/lib/supabase'
 
 const sentimentData = [30,45,40,60,55,80,70,85,75,90,80,88,70,65,78,82,90,85,88,92]
 
@@ -159,7 +160,7 @@ if (!data.error) {
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
 
-      mediaRecorder.start(1000)
+      mediaRecorder.start(500)
       setIsLive(true)
       setSeconds(0)
       fullTranscriptRef.current = ''
@@ -173,26 +174,48 @@ if (!data.error) {
           chunksRef.current = []
           processChunk(blob)
         }
-      }, 8000)
+      }, 5000)
 
     } catch (err) {
       setMicError('Microphone access denied. Please allow microphone access and try again.')
     }
   }
 
-  const endCall = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop()
-      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop())
-    }
-    if (intervalRef.current) clearInterval(intervalRef.current)
-    if (timerRef.current) clearInterval(timerRef.current)
-    if (chunksRef.current.length > 0) {
-      const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-      processChunk(blob)
-    }
-    setIsLive(false)
+  const endCall = async () => {
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.stop()
+    mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop())
   }
+  if (intervalRef.current) clearInterval(intervalRef.current)
+  if (timerRef.current) clearInterval(timerRef.current)
+  if (chunksRef.current.length > 0) {
+    const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+    await processChunk(blob)
+  }
+  setIsLive(false)
+
+  // Save call to Supabase
+  try {
+    const supabase = createClient()
+const { data: { user } } = await supabase.auth.getUser()
+console.log('Current user:', user)
+if (user) {
+        await supabase.from('calls').insert({
+        user_id: user.id,
+        duration: seconds,
+        contact_name: 'Ali Salameh',
+        company: 'ApexNile',
+        transcript: fullTranscriptRef.current,
+        insights: insights,
+        notes: notes,
+        status: 'completed',
+      })
+      console.log('Call saved!')
+    }
+  } catch (err) {
+    console.error('Failed to save call:', err)
+  }
+}
 
   const speakerColor = (speaker: number) => {
     const colors = ['#00e5a0', '#ffb020', '#4488ff', '#ff2d78']
