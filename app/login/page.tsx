@@ -22,11 +22,10 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const supabase = createClient()
-
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setError(error.message)
-      else setError('Check your email for a confirmation link!')
+      else setError('✓ Check your email for a confirmation link!')
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
@@ -35,54 +34,49 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '13px 16px', borderRadius: 10,
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: 'rgba(255,255,255,0.04)', color: '#fff',
-    fontSize: 14, outline: 'none', fontFamily: 'DM Sans, sans-serif',
-    transition: 'border-color 0.2s',
-  }
-
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f0f18; font-family: 'DM Sans', sans-serif; }
-        @keyframes float { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-12px)} }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        input { font-family: inherit; }
         input::placeholder { color: rgba(255,255,255,0.25); }
+        input:focus { outline: none; border-color: rgba(255,255,255,0.25) !important; }
+        @keyframes float { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-16px) scale(1.02)} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#0f0f18', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
 
-        {/* Ambient glows */}
-        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '40%', right: '20%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(68,136,255,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        {/* Spatial mesh */}
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '-30%', left: '-20%', width: '70%', height: '70%', borderRadius: '50%', background: '#00e5a0', filter: 'blur(160px)', opacity: 0.06, mixBlendMode: 'screen' }} />
+          <div style={{ position: 'absolute', bottom: '-30%', right: '-20%', width: '60%', height: '60%', borderRadius: '50%', background: '#4488ff', filter: 'blur(160px)', opacity: 0.06, mixBlendMode: 'screen' }} />
+          <div style={{ position: 'absolute', top: '30%', right: '10%', width: '40%', height: '40%', borderRadius: '50%', background: '#ff2d78', filter: 'blur(160px)', opacity: 0.04, mixBlendMode: 'screen' }} />
+        </div>
 
         {/* Floating orb */}
-        <div style={{ position: 'absolute', top: '15%', left: '50%', width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,160,0.15) 0%, rgba(68,136,255,0.1) 50%, transparent 70%)', animation: 'float 4s ease-in-out infinite', filter: 'blur(2px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,160,0.12) 0%, transparent 70%)', animation: 'float 5s ease-in-out infinite', pointerEvents: 'none' }} />
 
         {/* Card */}
-        <div style={{ width: '100%', maxWidth: 420, padding: '0 24px', position: 'relative', zIndex: 10 }}>
+        <div style={{ width: '100%', maxWidth: 400, padding: '0 20px', position: 'relative', zIndex: 10, animation: 'fadeUp 0.6s ease' }}>
 
           {/* Logo */}
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #00e5a0, #4488ff)', boxShadow: '0 0 30px rgba(0,229,160,0.3)', marginBottom: 20, fontSize: 22, fontWeight: 800, color: '#000', fontFamily: 'Syne, sans-serif' }}>
-              DF
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: 20, background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05))', border: '1px solid rgba(255,255,255,0.15)', marginBottom: 20, backdropFilter: 'blur(40px)', boxShadow: '0 0 40px rgba(0,229,160,0.15)' }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, background: 'linear-gradient(90deg, #00e5a0, #4488ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8 }}>
-              DealFlow AI
-            </div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>Your AI-powered sales assistant</div>
+            <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.5px', color: 'rgba(255,255,255,0.92)', marginBottom: 6 }}>DealFlow AI</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>Your AI-powered sales assistant</div>
           </div>
 
-          {/* Auth card */}
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '36px 32px', backdropFilter: 'blur(20px)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
+          {/* Glass card */}
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 32, padding: '36px 32px', backdropFilter: 'blur(40px)', boxShadow: '0 32px 80px rgba(0,0,0,0.5)' }}>
 
-            <div style={{ marginBottom: 28, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Syne, sans-serif', marginBottom: 6 }}>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.3px', color: 'rgba(255,255,255,0.9)', marginBottom: 6 }}>
                 {isSignUp ? 'Create account' : 'Welcome back'}
               </div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
@@ -90,10 +84,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Google button */}
-            <button onClick={handleGoogleLogin} style={{ width: '100%', padding: '14px 20px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, transition: 'all 0.2s', fontFamily: 'DM Sans, sans-serif', marginBottom: 16 }}
-              onMouseEnter={e => { const el = e.currentTarget; el.style.background = 'rgba(255,255,255,0.1)'; el.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'rgba(255,255,255,0.06)'; el.style.transform = 'translateY(0)'; }}
+            {/* Google */}
+            <button onClick={handleGoogleLogin} style={{ width: '100%', padding: '13px 20px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all 0.2s', fontFamily: 'inherit', marginBottom: 20, backdropFilter: 'blur(20px)' }}
+              onMouseEnter={e => { const el = e.currentTarget; el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(255,255,255,0.18)'; }}
+              onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'rgba(255,255,255,0.05)'; el.style.borderColor = 'rgba(255,255,255,0.1)'; }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -105,75 +99,48 @@ export default function LoginPage() {
             </button>
 
             {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>or</span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>or</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
             </div>
 
-            {/* Email form */}
+            {/* Form */}
             <form onSubmit={handleEmailAuth}>
-              <div style={{ marginBottom: 12 }}>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,229,160,0.4)'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-                />
+              <div style={{ marginBottom: 10 }}>
+                <input type="email" placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} required
+                  style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: 14, transition: 'border-color 0.2s' }} />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,229,160,0.4)'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-                />
+                <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required
+                  style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: 14, transition: 'border-color 0.2s' }} />
               </div>
 
-              {/* Error / success message */}
               {error && (
-                <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 8, fontSize: 13, background: error.includes('Check your email') ? 'rgba(0,229,160,0.08)' : 'rgba(255,71,87,0.08)', border: `1px solid ${error.includes('Check your email') ? 'rgba(0,229,160,0.2)' : 'rgba(255,71,87,0.2)'}`, color: error.includes('Check your email') ? '#00e5a0' : '#ff8a94' }}>
+                <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 12, fontSize: 13, background: error.startsWith('✓') ? 'rgba(48,209,88,0.08)' : 'rgba(255,69,58,0.08)', border: `1px solid ${error.startsWith('✓') ? 'rgba(48,209,88,0.2)' : 'rgba(255,69,58,0.2)'}`, color: error.startsWith('✓') ? '#30d158' : '#ff453a' }}>
                   {error}
                 </div>
               )}
 
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={loading}
-                style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: loading ? 'rgba(0,229,160,0.4)' : 'linear-gradient(135deg, #00e5a0, #00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', boxShadow: '0 4px 20px rgba(0,229,160,0.3)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,229,160,0.4)'; }}}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,229,160,0.3)'; }}
+              <button type="submit" disabled={loading} style={{ width: '100%', padding: '13px', borderRadius: 16, border: 'none', background: loading ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.9)', color: '#000', fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#fff'; }}
+                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = 'rgba(255,255,255,0.9)'; }}
               >
-                {loading && <div style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
+                {loading && <div style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
                 {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
               </button>
             </form>
 
-            {/* Toggle sign up / sign in */}
-            <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>
+            <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
               {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-              <span
-                onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
-                style={{ color: '#00e5a0', cursor: 'pointer', fontWeight: 600 }}
-              >
+              <span onClick={() => { setIsSignUp(!isSignUp); setError('') }} style={{ color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 500 }}>
                 {isSignUp ? 'Sign in' : 'Sign up free'}
               </span>
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
-            By signing in you agree to our Terms & Privacy Policy
+          <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: 'rgba(255,255,255,0.15)' }}>
+            By continuing you agree to our Terms & Privacy Policy
           </div>
         </div>
       </div>
