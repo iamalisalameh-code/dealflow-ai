@@ -168,6 +168,14 @@ export default function HistoryPage() {
                             const colors = ['#ff2d78', '#ffb020', '#4488ff', '#00e5a0']
                             return <span key={i} style={{ padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: `${colors[i % colors.length]}18`, color: colors[i % colors.length], border: `1px solid ${colors[i % colors.length]}30` }}>{t}</span>
                           })}
+                          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+  <button
+    onClick={e => { e.stopPropagation(); window.location.href = `/summary/${call.id}`; }}
+    style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,229,160,0.3)', background: 'rgba(0,229,160,0.08)', color: '#00e5a0', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+  >
+    View Summary →
+  </button>
+</div>
                         </div>
                       )}
                     </div>
@@ -175,6 +183,7 @@ export default function HistoryPage() {
                 </div>
               )}
             </div>
+            
 
             {/* Call detail panel */}
             {selected && (
