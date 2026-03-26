@@ -1,126 +1,176 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 
-interface Call {
-  id: string
-  created_at: string
-  duration: number
-  contact_name: string
-  company: string
-  transcript: string
-  insights: any
-  notes: string
-  status: string
-}
+const TOTAL_STEPS = 7
 
-function GaugeCircle({ value, color, size = 80, stroke = 7 }: { value: number, color: string, size?: number, stroke?: number }) {
-  const r = (size - stroke * 2) / 2
-  const circ = 2 * Math.PI * r
-  const offset = circ - (value / 100) * circ
-  return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1s ease-out' }} />
-      </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontSize: 16, fontWeight: 700 }}>
-        {value}%
-      </div>
-    </div>
-  )
-}
+export default function OnboardingPage() {
+  const [step, setStep] = useState(1)
+  const [saving, setSaving] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string, path: string, size: number }[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-export default function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params)
-  const [call, setCall] = useState<Call | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [generatingSummary, setGeneratingSummary] = useState(false)
-  const [aiSummary, setAiSummary] = useState('')
+  const [form, setForm] = useState({
+    fullName: '',
+    industry: '',
+    experience: 'Intermediate',
+    product: '',
+    website: '',
+    competitors: ['', '', ''],
+    objectionStyle: '',
+    closingStyle: '',
+    monthlyTarget: '',
+    dailyCalls: '',
+  })
 
-  const card: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    padding: 20,
-  }
+  const update = (key: string, value: any) => setForm(f => ({ ...f, [key]: value }))
 
-  useEffect(() => {
-    const fetchCall = async () => {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('calls')
-        .select('*')
-        .eq('id', id)
-        .single()
-      if (!error && data) {
-        setCall(data)
-        if (data.transcript) generateSummary(data)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
+    // Max 3 files, 5MB each
+    if (uploadedFiles.length + files.length > 3) {
+      setUploadError('Maximum 3 files allowed')
+      return
+    }
+
+    const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const maxSize = 5 * 1024 * 1024 // 5MB
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        setUploadError('Only PDF, TXT, and Word documents are allowed')
+        return
       }
-      setLoading(false)
+      if (file.size > maxSize) {
+        setUploadError('Each file must be under 5MB')
+        return
+      }
     }
-    fetchCall()
-  }, [id])
 
-  const generateSummary = async (callData: Call) => {
-    if (!callData.transcript || callData.transcript.length < 20) return
-    setGeneratingSummary(true)
+    setUploadError('')
+    setUploading(true)
+
     try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transcript: `Generate a detailed post-call coaching summary. Include what went well, areas to improve, key decisions made, and recommended follow-up actions. Transcript: ${callData.transcript}`
-        }),
-      })
-      const data = await res.json()
-      if (data.notes) setAiSummary(data.notes)
-    } catch (err) {
-      console.error('Summary error:', err)
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+
+      for (const file of files) {
+        const path = `${user.id}/${Date.now()}_${file.name}`
+        const { error } = await supabase.storage
+          .from('user-documents')
+          .upload(path, file)
+
+        if (error) throw error
+
+        setUploadedFiles(prev => [...prev, { name: file.name, path, size: file.size }])
+      }
+    } catch (err: any) {
+      setUploadError(err.message || 'Upload failed. Please try again.')
     }
-    setGeneratingSummary(false)
+
+    setUploading(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const formatDuration = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0')
-    const s = (seconds % 60).toString().padStart(2, '0')
-    return `${m}:${s}`
+  const removeFile = async (index: number) => {
+    try {
+      const supabase = createClient()
+      await supabase.storage.from('user-documents').remove([uploadedFiles[index].path])
+      setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+    } catch (err) {
+      console.error('Remove error:', err)
+    }
   }
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
-  if (loading) return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f0f18; color: #fff; font-family: 'DM Sans', sans-serif; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
-      <div style={{ minHeight: '100vh', background: '#0f0f18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#00e5a0', borderRadius: '50%', animation: 'spin 0.7s linear infinite', margin: '0 auto 16px' }} />
-          Loading summary...
-        </div>
-      </div>
-    </>
-  )
+  const handleFinish = async () => {
+    setSaving(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          full_name: form.fullName,
+          industry: form.industry,
+          experience: form.experience,
+          product: form.product,
+          website: form.website,
+          competitors: form.competitors.filter(c => c.trim()),
+          objection_style: form.objectionStyle,
+          closing_style: form.closingStyle,
+          monthly_target: form.monthlyTarget,
+          daily_calls: form.dailyCalls,
+          document_paths: uploadedFiles.map(f => f.path),
+          onboarded: true,
+        })
+      }
+    } catch (err) {
+      console.error('Save error:', err)
+    }
+    setSaving(false)
+    window.location.href = '/'
+  }
 
-  if (!call) return (
-    <>
-      <style>{`* { margin: 0; padding: 0; box-sizing: border-box; } body { background: #0f0f18; color: #fff; font-family: sans-serif; }`}</style>
-      <div style={{ minHeight: '100vh', background: '#0f0f18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)' }}>
-        Call not found — <span onClick={() => window.location.href = '/history'} style={{ color: '#00e5a0', cursor: 'pointer', marginLeft: 6 }}>Go back</span>
-      </div>
-    </>
-  )
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '13px 16px', borderRadius: 12,
+    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(255,255,255,0.05)', color: '#fff',
+    fontSize: 15, outline: 'none',
+    fontFamily: 'DM Sans, sans-serif',
+    transition: 'border-color 0.2s',
+  }
 
-  const insights = call.insights || {}
+  const optionStyle = (selected: boolean): React.CSSProperties => ({
+    padding: '14px 20px', borderRadius: 12, cursor: 'pointer',
+    border: `1px solid ${selected ? 'rgba(0,229,160,0.4)' : 'rgba(255,255,255,0.08)'}`,
+    background: selected ? 'rgba(0,229,160,0.08)' : 'rgba(255,255,255,0.03)',
+    color: selected ? '#00e5a0' : 'rgba(255,255,255,0.6)',
+    fontSize: 14, fontWeight: selected ? 600 : 400,
+    transition: 'all 0.2s',
+  })
+
+  const industries = ['Real Estate', 'SaaS / Tech', 'Finance', 'Insurance', 'Healthcare', 'E-commerce', 'Consulting', 'Other']
+  const experiences = ['Beginner', 'Intermediate', 'Advanced', 'Expert']
+  const objectionStyles = [
+    { label: 'Assertive Closer', desc: 'Direct, confident, persistent' },
+    { label: 'Consultative Guide', desc: 'Empathetic, relationship-focused' },
+    { label: 'Data-Driven', desc: 'Facts, ROI, logic-based' },
+    { label: 'Storyteller', desc: 'Narratives, social proof, emotion' },
+  ]
+  const closingStyles = [
+    { label: 'Assumptive Close', desc: 'Act as if the deal is done' },
+    { label: 'Urgency Close', desc: 'Create time pressure' },
+    { label: 'Question Close', desc: 'Use questions to guide' },
+    { label: 'Summary Close', desc: 'Recap value before asking' },
+  ]
+
+  const canProceed = () => {
+    if (step === 1) return form.fullName.trim().length > 0
+    if (step === 2) return form.industry && form.product.trim().length > 0
+    if (step === 3) return true
+    if (step === 4) return true // documents optional
+    if (step === 5) return form.objectionStyle.length > 0
+    if (step === 6) return form.monthlyTarget.trim().length > 0
+    return true
+  }
+
+  const docTypes = [
+    { icon: '📄', label: 'Sales scripts', desc: 'Your proven pitch scripts' },
+    { icon: '📊', label: 'Product sheets', desc: 'Features, pricing, specs' },
+    { icon: '🏆', label: 'Case studies', desc: 'Success stories & wins' },
+    { icon: '📝', label: 'Company docs', desc: 'About us, credentials' },
+  ]
 
   return (
     <>
@@ -128,196 +178,313 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #0f0f18; color: #fff; font-family: 'DM Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.25); }
+        input:focus, textarea:focus { border-color: rgba(0,229,160,0.4) !important; outline: none; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes gradshift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#0f0f18' }}>
+      <div style={{ minHeight: '100vh', background: '#0f0f18', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', position: 'relative', overflow: 'hidden' }}>
 
         {/* Ambient glows */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
-        <div style={{ position: 'fixed', bottom: 0, right: 0, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'fixed', top: '-20%', left: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,160,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'fixed', bottom: '-20%', right: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-        {/* Topbar */}
-        <div style={{ height: 60, background: 'rgba(15,15,24,0.9)', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(20px)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div onClick={() => window.location.href = '/'} style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 17, background: 'linear-gradient(90deg,#00e5a0,#4488ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', cursor: 'pointer' }}>DealFlow AI</div>
-            <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>Post-Call Summary</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => window.location.href = '/history'} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-              ← History
-            </button>
-            <button onClick={() => window.location.href = '/'} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(0,229,160,0.3)', background: 'rgba(0,229,160,0.08)', color: '#00e5a0', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-              + New Call
-            </button>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 40 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, color: '#000' }}>DF</div>
+          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18, background: 'linear-gradient(90deg,#00e5a0,#4488ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>DealFlow AI</span>
+        </div>
+
+        {/* Progress */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 40 }}>
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            <div key={i} style={{ height: 4, borderRadius: 2, transition: 'all 0.3s', width: i + 1 === step ? 24 : 8, background: i + 1 <= step ? '#00e5a0' : 'rgba(255,255,255,0.1)' }} />
+          ))}
+        </div>
+
+        {/* Card */}
+        <div style={{ width: '100%', maxWidth: 540, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '40px 36px', backdropFilter: 'blur(20px)', animation: 'fadeIn 0.4s ease' }} key={step}>
+
+          {/* Step 1 — About you */}
+          {step === 1 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 1 OF {TOTAL_STEPS}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Tell me about you</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>This helps me personalize your AI agent</div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Full Name</div>
+                <input style={inputStyle} placeholder="Your full name" value={form.fullName} onChange={e => update('fullName', e.target.value)} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Industry</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {industries.map(ind => (
+                    <div key={ind} style={optionStyle(form.industry === ind)} onClick={() => update('industry', ind)}>{ind}</div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Experience Level</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {experiences.map(exp => (
+                    <div key={exp} style={{ ...optionStyle(form.experience === exp), textAlign: 'center', padding: '10px 8px', fontSize: 13 }} onClick={() => update('experience', exp)}>{exp}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 — What you sell */}
+          {step === 2 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 2 OF {TOTAL_STEPS}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Teach me what you sell</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>I'll use this to generate smarter insights during calls</div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>What do you sell?</div>
+                <input style={inputStyle} placeholder="e.g. Luxury apartments in Dubai Marina" value={form.product} onChange={e => update('product', e.target.value)} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Company website <span style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span></div>
+                <input style={inputStyle} placeholder="https://yourcompany.com" value={form.website} onChange={e => update('website', e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {/* Step 3 — Competitors */}
+          {step === 3 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 3 OF {TOTAL_STEPS}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Know your battlefield</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>Add your top competitors so I can help you differentiate</div>
+              {form.competitors.map((comp, i) => (
+                <div key={i} style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>
+                    Competitor {i + 1} {i > 0 && <span style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span>}
+                  </div>
+                  <input style={inputStyle} placeholder={['Main competitor name', 'Second competitor', 'Third competitor'][i]}
+                    value={comp} onChange={e => {
+                      const updated = [...form.competitors]
+                      updated[i] = e.target.value
+                      update('competitors', updated)
+                    }} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Step 4 — Document upload */}
+          {step === 4 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 4 OF {TOTAL_STEPS}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Train your AI agent</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>
+                Upload documents so your AI learns your exact context
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', marginBottom: 24 }}>
+                Max 3 files · PDF, TXT, or Word · 5MB each · Optional but recommended
+              </div>
+
+              {/* What to upload */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 24 }}>
+                {docTypes.map((d, i) => (
+                  <div key={i} style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>{d.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{d.label}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{d.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Upload area */}
+              {uploadedFiles.length < 3 && (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ border: '2px dashed rgba(0,229,160,0.2)', borderRadius: 14, padding: '28px 20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', marginBottom: 16, background: 'rgba(0,229,160,0.03)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,229,160,0.4)'; (e.currentTarget as HTMLDivElement).style.background = 'rgba(0,229,160,0.06)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,229,160,0.2)'; (e.currentTarget as HTMLDivElement).style.background = 'rgba(0,229,160,0.03)'; }}
+                >
+                  {uploading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'rgba(255,255,255,0.5)' }}>
+                      <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: '#00e5a0', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                      Uploading...
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>📎</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#00e5a0', marginBottom: 4 }}>Click to upload documents</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>PDF, TXT, DOC, DOCX · Max 5MB each</div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <input ref={fileInputRef} type="file" accept=".pdf,.txt,.doc,.docx" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
+
+              {/* Error */}
+              {uploadError && (
+                <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', fontSize: 13, color: '#ff8a94', marginBottom: 12 }}>
+                  ⚠ {uploadError}
+                </div>
+              )}
+
+              {/* Uploaded files */}
+              {uploadedFiles.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {uploadedFiles.map((file, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.15)' }}>
+                      <div style={{ fontSize: 20, flexShrink: 0 }}>
+                        {file.name.endsWith('.pdf') ? '📄' : file.name.endsWith('.txt') ? '📝' : '📃'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#00e5a0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{formatSize(file.size)}</div>
+                      </div>
+                      <button onClick={() => removeFile(i)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, padding: '2px 6px', flexShrink: 0 }}>✕</button>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textAlign: 'center', marginTop: 4 }}>
+                    {uploadedFiles.length}/3 files uploaded · Your AI agent will learn from these
+                  </div>
+                </div>
+              )}
+
+              {uploadedFiles.length === 0 && (
+                <div style={{ textAlign: 'center', marginTop: 8 }}>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setStep(s => s + 1)}>
+                    Skip for now
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 5 — Objection style */}
+          {step === 5 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 5 OF {TOTAL_STEPS}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Choose your style</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>How do you prefer to handle objections?</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+                {objectionStyles.map(s => (
+                  <div key={s.label} style={{ ...optionStyle(form.objectionStyle === s.label), display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => update('objectionStyle', s.label)}>
+                    <div>
+                      <div style={{ fontWeight: 600, marginBottom: 2 }}>{s.label}</div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>{s.desc}</div>
+                    </div>
+                    {form.objectionStyle === s.label && <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#00e5a0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#000', fontWeight: 700, flexShrink: 0 }}>✓</div>}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Preferred closing style</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {closingStyles.map(s => (
+                    <div key={s.label} style={{ ...optionStyle(form.closingStyle === s.label), fontSize: 13 }} onClick={() => update('closingStyle', s.label)}>
+                      <div style={{ fontWeight: 600, marginBottom: 2 }}>{s.label}</div>
+                      <div style={{ fontSize: 11, opacity: 0.6 }}>{s.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 6 — Set targets */}
+          {step === 6 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 6 OF {TOTAL_STEPS}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Set your targets</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>I'll track your progress and coach you toward these goals</div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Monthly Revenue Target</div>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', fontSize: 15 }}>AED</span>
+                  <input style={{ ...inputStyle, paddingLeft: 56 }} placeholder="500,000" value={form.monthlyTarget} onChange={e => update('monthlyTarget', e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Daily Calls Target</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+                  {['5', '10', '15', '20', '25+'].map(n => (
+                    <div key={n} style={{ ...optionStyle(form.dailyCalls === n), textAlign: 'center', padding: '12px 8px' }} onClick={() => update('dailyCalls', n)}>
+                      <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700 }}>{n}</div>
+                      <div style={{ fontSize: 10, opacity: 0.6 }}>calls</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 7 — All set */}
+          {step === 7 && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, margin: '0 auto 24px', animation: 'float 3s ease-in-out infinite', boxShadow: '0 0 40px rgba(0,229,160,0.3)' }}>
+                🎉
+              </div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, marginBottom: 12 }}>You're all set!</div>
+              <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 32, lineHeight: 1.7 }}>
+                Your AI agent is calibrated and ready.<br />Let's close some deals.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', marginBottom: 32 }}>
+                {[
+                  { label: 'Profile calibrated', value: form.fullName },
+                  { label: 'Industry', value: form.industry },
+                  { label: 'Objection style', value: form.objectionStyle },
+                  { label: 'Documents uploaded', value: uploadedFiles.length > 0 ? `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}` : 'None — can add later' },
+                  { label: 'Monthly target', value: form.monthlyTarget ? `AED ${form.monthlyTarget}` : 'Not set' },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.15)' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#00e5a0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#000', fontWeight: 700, flexShrink: 0 }}>✓</div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{item.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#00e5a0' }}>{item.value || '—'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 32 }}>
+            {step > 1 && step < 7 && (
+              <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                Back
+              </button>
+            )}
+            {step < 6 && step !== 4 && (
+              <button onClick={() => setStep(s => s + 1)} disabled={!canProceed()} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: canProceed() ? 'linear-gradient(135deg,#00e5a0,#00b8ff)' : 'rgba(255,255,255,0.08)', color: canProceed() ? '#000' : 'rgba(255,255,255,0.25)', fontSize: 15, fontWeight: 700, cursor: canProceed() ? 'pointer' : 'not-allowed', fontFamily: 'DM Sans, sans-serif', transition: 'all 0.2s' }}>
+                Next →
+              </button>
+            )}
+            {step === 4 && (
+              <button onClick={() => setStep(5)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                {uploadedFiles.length > 0 ? `Continue with ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} →` : 'Skip for now →'}
+              </button>
+            )}
+            {step === 6 && (
+              <button onClick={() => setStep(7)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                Finish Setup →
+              </button>
+            )}
+            {step === 7 && (
+              <button onClick={handleFinish} disabled={saving} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: saving ? 'rgba(0,229,160,0.4)' : 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {saving && <div style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
+                {saving ? 'Saving...' : 'Go to Dashboard →'}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Content */}
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px', position: 'relative', zIndex: 1 }}>
-
-          {/* Header card */}
-          <div style={{ ...card, marginBottom: 24, padding: '28px 32px', background: 'linear-gradient(135deg, rgba(0,229,160,0.06), rgba(68,136,255,0.06))', borderColor: 'rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden', animation: 'fadeIn 0.4s ease' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #00e5a0, #4488ff, transparent)', backgroundSize: '200% 100%', animation: 'gradshift 3s ease infinite' }} />
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 10 }}>POST-CALL SUMMARY</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, marginBottom: 6 }}>
-                  {call.contact_name} <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>| {call.company}</span>
-                </div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>{formatDate(call.created_at)}</div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {[
-                  { label: 'Duration', value: formatDuration(call.duration), color: '#00e5a0' },
-                  { label: 'Deal Health', value: `${insights.dealHealthScore || 0}%`, color: '#ffb020' },
-                  { label: 'Talk Ratio', value: `${insights.talkRatio || 0}%`, color: '#4488ff' },
-                ].map((stat, i) => (
-                  <div key={i} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 20px' }}>
-                    <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, fontWeight: 800, color: stat.color }}>{stat.value}</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Score cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24, animation: 'fadeIn 0.4s ease 0.1s both' }}>
-            <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 16 }}>
-              <GaugeCircle value={insights.dealHealthScore || 0} color="#ffb020" size={80} stroke={7} />
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>DEAL HEALTH</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800, color: '#ffb020' }}>
-                  {(insights.dealHealthScore || 0) >= 80 ? 'Strong' : (insights.dealHealthScore || 0) >= 60 ? 'On Track' : 'At Risk'}
-                </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Overall deal progress</div>
-              </div>
-            </div>
-            <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 16 }}>
-              <GaugeCircle value={insights.talkRatio || 0} color="#00e5a0" size={80} stroke={7} />
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>TALK RATIO</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800, color: '#00e5a0' }}>
-                  {(insights.talkRatio || 0) <= 50 ? 'Balanced' : 'Too Much'}
-                </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Agent speaking time</div>
-              </div>
-            </div>
-            <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: insights.sentiment === 'positive' ? 'rgba(0,229,160,0.1)' : 'rgba(255,176,32,0.1)', border: `3px solid ${insights.sentiment === 'positive' ? '#00e5a0' : '#ffb020'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
-                {insights.sentiment === 'positive' ? '😊' : insights.sentiment === 'negative' ? '😟' : '😐'}
-              </div>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>SENTIMENT</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800, color: insights.sentiment === 'positive' ? '#00e5a0' : '#ffb020', textTransform: 'capitalize' }}>
-                  {insights.sentiment || 'Neutral'}
-                </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Customer sentiment</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24, animation: 'fadeIn 0.4s ease 0.2s both' }}>
-            {insights.nextActions && (
-              <div style={card}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>FOLLOW-UP ACTIONS</div>
-                {insights.nextActions.map((a: string, i: number) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${i === 0 ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'}`, background: i === 0 ? 'rgba(0,229,160,0.08)' : 'rgba(255,255,255,0.03)', color: i === 0 ? '#00e5a0' : 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 8 }}>
-                    <span>{i === 0 ? '⚡' : `${i + 1}.`}</span><span>{a}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {insights.objections && (
-              <div style={card}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#ff4757', marginBottom: 14 }}>OBJECTIONS RAISED</div>
-                {insights.objections.length === 0
-                  ? <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>No objections detected</div>
-                  : insights.objections.map((o: string, i: number) => (
-                    <div key={i} style={{ background: 'rgba(255,71,87,0.08)', borderLeft: '2px solid #ff4757', borderRadius: '0 8px 8px 0', padding: '10px 14px', fontSize: 13, color: 'rgba(255,180,185,0.9)', marginBottom: 8 }}>{o}</div>
-                  ))
-                }
-              </div>
-            )}
-
-            {insights.customerNeeds && (
-              <div style={card}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>CUSTOMER NEEDS</div>
-                {insights.customerNeeds.map((n: string, i: number) => {
-                  const colors = ['#ffb020', '#4488ff', '#ff2d78', '#00e5a0']
-                  return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 8 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: colors[i % colors.length], boxShadow: `0 0 8px ${colors[i % colors.length]}`, flexShrink: 0 }} />
-                      {n}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {insights.hotTopics && (
-              <div style={card}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>TOPICS DISCUSSED</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {insights.hotTopics.map((t: string, i: number) => {
-                    const colors = [
-                      { color: '#ff2d78', bg: 'rgba(255,45,120,0.12)', border: 'rgba(255,45,120,0.25)' },
-                      { color: '#ffb020', bg: 'rgba(255,176,32,0.12)', border: 'rgba(255,176,32,0.25)' },
-                      { color: '#4488ff', bg: 'rgba(68,136,255,0.12)', border: 'rgba(68,136,255,0.25)' },
-                      { color: '#00e5a0', bg: 'rgba(0,229,160,0.12)', border: 'rgba(0,229,160,0.25)' },
-                    ]
-                    const c = colors[i % colors.length]
-                    return <span key={i} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 700, background: c.bg, color: c.color, border: `1px solid ${c.border}` }}>{t}</span>
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* AI Coaching Summary */}
-          <div style={{ ...card, marginBottom: 16, animation: 'fadeIn 0.4s ease 0.3s both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)' }}>AI COACHING SUMMARY</div>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#a855f7,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>✦</div>
-            </div>
-            {generatingSummary ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
-                <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: '#a855f7', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                AI is generating your coaching summary...
-              </div>
-            ) : aiSummary ? (
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8 }}>{aiSummary}</div>
-            ) : insights.notes ? (
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8 }}>{insights.notes}</div>
-            ) : (
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>No transcript available for AI summary</div>
-            )}
-          </div>
-
-          {/* Full Transcript */}
-          {call.transcript && (
-            <div style={{ ...card, marginBottom: 16, animation: 'fadeIn 0.4s ease 0.4s both' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>FULL TRANSCRIPT</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.9, maxHeight: 300, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>{call.transcript}</div>
-            </div>
-          )}
-
-          {/* Notes */}
-          {call.notes && (
-            <div style={{ ...card, animation: 'fadeIn 0.4s ease 0.5s both' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>YOUR NOTES</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8 }}>{call.notes}</div>
-            </div>
-          )}
-
+        <div style={{ marginTop: 20, fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
+          Step {step} of {TOTAL_STEPS}
         </div>
       </div>
     </>
