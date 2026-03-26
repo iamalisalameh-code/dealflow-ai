@@ -1,490 +1,293 @@
 'use client'
-import React, { useState, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 
-const TOTAL_STEPS = 7
+interface Call {
+  id: string
+  created_at: string
+  duration: number
+  contact_name: string
+  company: string
+  transcript: string
+  insights: any
+  notes: string
+  status: string
+}
 
-export default function OnboardingPage() {
-  const [step, setStep] = useState(1)
-  const [saving, setSaving] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string, path: string, size: number }[]>([])
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+function AppleRing({ value, color, size = 80, stroke = 8 }: { value: number, color: string, size?: number, stroke?: number }) {
+  const r = (size - stroke * 2) / 2
+  const circ = 2 * Math.PI * r
+  const offset = circ - (value / 100) * circ
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={stroke} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.32,0.72,0,1)' }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontSize: size < 70 ? 12 : 16, fontWeight: 600 }}>
+        {value}%
+      </div>
+    </div>
+  )
+}
 
-  const [form, setForm] = useState({
-    fullName: '',
-    industry: '',
-    experience: 'Intermediate',
-    product: '',
-    website: '',
-    competitors: ['', '', ''],
-    objectionStyle: '',
-    closingStyle: '',
-    monthlyTarget: '',
-    dailyCalls: '',
-  })
+export default function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params)
+  const [call, setCall] = useState<Call | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [aiSummary, setAiSummary] = useState('')
+  const [generatingSummary, setGeneratingSummary] = useState(false)
 
-  const update = (key: string, value: any) => setForm(f => ({ ...f, [key]: value }))
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    if (!files.length) return
-
-    // Max 3 files, 5MB each
-    if (uploadedFiles.length + files.length > 3) {
-      setUploadError('Maximum 3 files allowed')
-      return
-    }
-
-    const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-    const maxSize = 5 * 1024 * 1024 // 5MB
-
-    for (const file of files) {
-      if (!allowedTypes.includes(file.type)) {
-        setUploadError('Only PDF, TXT, and Word documents are allowed')
-        return
-      }
-      if (file.size > maxSize) {
-        setUploadError('Each file must be under 5MB')
-        return
-      }
-    }
-
-    setUploadError('')
-    setUploading(true)
-
-    try {
+  useEffect(() => {
+    const fetchCall = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not logged in')
-
-      for (const file of files) {
-        const path = `${user.id}/${Date.now()}_${file.name}`
-        const { error } = await supabase.storage
-          .from('user-documents')
-          .upload(path, file)
-
-        if (error) throw error
-
-        setUploadedFiles(prev => [...prev, { name: file.name, path, size: file.size }])
+      const { data, error } = await supabase.from('calls').select('*').eq('id', id).single()
+      if (!error && data) {
+        setCall(data)
+        if (data.transcript) generateSummary(data)
       }
-    } catch (err: any) {
-      setUploadError(err.message || 'Upload failed. Please try again.')
+      setLoading(false)
     }
+    fetchCall()
+  }, [id])
 
-    setUploading(false)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
-  const removeFile = async (index: number) => {
+  const generateSummary = async (callData: Call) => {
+    if (!callData.transcript || callData.transcript.length < 20) return
+    setGeneratingSummary(true)
     try {
-      const supabase = createClient()
-      await supabase.storage.from('user-documents').remove([uploadedFiles[index].path])
-      setUploadedFiles(prev => prev.filter((_, i) => i !== index))
-    } catch (err) {
-      console.error('Remove error:', err)
-    }
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: `Generate a detailed post-call coaching summary. Include what went well, areas to improve, and recommended follow-up. Transcript: ${callData.transcript}` }),
+      })
+      const data = await res.json()
+      if (data.notes) setAiSummary(data.notes)
+    } catch (err) { console.error(err) }
+    setGeneratingSummary(false)
   }
 
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
+  const formatDuration = (s: number) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-  const handleFinish = async () => {
-    setSaving(true)
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('profiles').upsert({
-          id: user.id,
-          full_name: form.fullName,
-          industry: form.industry,
-          experience: form.experience,
-          product: form.product,
-          website: form.website,
-          competitors: form.competitors.filter(c => c.trim()),
-          objection_style: form.objectionStyle,
-          closing_style: form.closingStyle,
-          monthly_target: form.monthlyTarget,
-          daily_calls: form.dailyCalls,
-          document_paths: uploadedFiles.map(f => f.path),
-          onboarded: true,
-        })
-      }
-    } catch (err) {
-      console.error('Save error:', err)
-    }
-    setSaving(false)
-    window.location.href = '/'
-  }
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '13px 16px', borderRadius: 12,
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'rgba(255,255,255,0.05)', color: '#fff',
-    fontSize: 15, outline: 'none',
-    fontFamily: 'DM Sans, sans-serif',
-    transition: 'border-color 0.2s',
-  }
-
-  const optionStyle = (selected: boolean): React.CSSProperties => ({
-    padding: '14px 20px', borderRadius: 12, cursor: 'pointer',
-    border: `1px solid ${selected ? 'rgba(0,229,160,0.4)' : 'rgba(255,255,255,0.08)'}`,
-    background: selected ? 'rgba(0,229,160,0.08)' : 'rgba(255,255,255,0.03)',
-    color: selected ? '#00e5a0' : 'rgba(255,255,255,0.6)',
-    fontSize: 14, fontWeight: selected ? 600 : 400,
-    transition: 'all 0.2s',
-  })
-
-  const industries = ['Real Estate', 'SaaS / Tech', 'Finance', 'Insurance', 'Healthcare', 'E-commerce', 'Consulting', 'Other']
-  const experiences = ['Beginner', 'Intermediate', 'Advanced', 'Expert']
-  const objectionStyles = [
-    { label: 'Assertive Closer', desc: 'Direct, confident, persistent' },
-    { label: 'Consultative Guide', desc: 'Empathetic, relationship-focused' },
-    { label: 'Data-Driven', desc: 'Facts, ROI, logic-based' },
-    { label: 'Storyteller', desc: 'Narratives, social proof, emotion' },
-  ]
-  const closingStyles = [
-    { label: 'Assumptive Close', desc: 'Act as if the deal is done' },
-    { label: 'Urgency Close', desc: 'Create time pressure' },
-    { label: 'Question Close', desc: 'Use questions to guide' },
-    { label: 'Summary Close', desc: 'Recap value before asking' },
+  const tagColors = [
+    { color: '#ff453a', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.2)' },
+    { color: '#ff9f0a', bg: 'rgba(255,159,10,0.12)', border: 'rgba(255,159,10,0.2)' },
+    { color: '#0a84ff', bg: 'rgba(10,132,255,0.12)', border: 'rgba(10,132,255,0.2)' },
+    { color: '#30d158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.2)' },
   ]
 
-  const canProceed = () => {
-    if (step === 1) return form.fullName.trim().length > 0
-    if (step === 2) return form.industry && form.product.trim().length > 0
-    if (step === 3) return true
-    if (step === 4) return true // documents optional
-    if (step === 5) return form.objectionStyle.length > 0
-    if (step === 6) return form.monthlyTarget.trim().length > 0
-    return true
-  }
+  if (loading) return (
+    <>
+      <style>{`* { margin:0;padding:0;box-sizing:border-box; } body { background:#000;color:#fff;font-family:-apple-system,sans-serif; } @keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>
+        <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.6)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+        Loading summary...
+      </div>
+    </>
+  )
 
-  const docTypes = [
-    { icon: '📄', label: 'Sales scripts', desc: 'Your proven pitch scripts' },
-    { icon: '📊', label: 'Product sheets', desc: 'Features, pricing, specs' },
-    { icon: '🏆', label: 'Case studies', desc: 'Success stories & wins' },
-    { icon: '📝', label: 'Company docs', desc: 'About us, credentials' },
-  ]
+  if (!call) return (
+    <>
+      <style>{`* { margin:0;padding:0;box-sizing:border-box; } body { background:#000;color:#fff;font-family:-apple-system,sans-serif; }`}</style>
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)' }}>
+        Call not found — <span onClick={() => window.location.href = '/history'} style={{ color: 'rgba(255,255,255,0.7)', cursor: 'pointer', marginLeft: 6 }}>Go back</span>
+      </div>
+    </>
+  )
+
+  const ins = call.insights || {}
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f0f18; color: #fff; font-family: 'DM Sans', sans-serif; }
-        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.25); }
-        input:focus, textarea:focus { border-color: rgba(0,229,160,0.4) !important; outline: none; }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-font-smoothing: antialiased; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        textarea { font-family: inherit; }
+        textarea:focus { outline: none; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes gradshift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#0f0f18', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ minHeight: '100vh', background: '#000' }}>
 
-        {/* Ambient glows */}
-        <div style={{ position: 'fixed', top: '-20%', left: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,160,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'fixed', bottom: '-20%', right: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 40 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 14, color: '#000' }}>DF</div>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18, background: 'linear-gradient(90deg,#00e5a0,#4488ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>DealFlow AI</span>
+        {/* Spatial mesh */}
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+          <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', borderRadius: '50%', background: '#00e5a0', filter: 'blur(160px)', opacity: 0.05, mixBlendMode: 'screen' }} />
+          <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', borderRadius: '50%', background: '#a855f7', filter: 'blur(160px)', opacity: 0.05, mixBlendMode: 'screen' }} />
         </div>
 
-        {/* Progress */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 40 }}>
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div key={i} style={{ height: 4, borderRadius: 2, transition: 'all 0.3s', width: i + 1 === step ? 24 : 8, background: i + 1 <= step ? '#00e5a0' : 'rgba(255,255,255,0.1)' }} />
-          ))}
-        </div>
-
-        {/* Card */}
-        <div style={{ width: '100%', maxWidth: 540, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '40px 36px', backdropFilter: 'blur(20px)', animation: 'fadeIn 0.4s ease' }} key={step}>
-
-          {/* Step 1 — About you */}
-          {step === 1 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 1 OF {TOTAL_STEPS}</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Tell me about you</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>This helps me personalize your AI agent</div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Full Name</div>
-                <input style={inputStyle} placeholder="Your full name" value={form.fullName} onChange={e => update('fullName', e.target.value)} />
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Industry</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {industries.map(ind => (
-                    <div key={ind} style={optionStyle(form.industry === ind)} onClick={() => update('industry', ind)}>{ind}</div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Experience Level</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  {experiences.map(exp => (
-                    <div key={exp} style={{ ...optionStyle(form.experience === exp), textAlign: 'center', padding: '10px 8px', fontSize: 13 }} onClick={() => update('experience', exp)}>{exp}</div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2 — What you sell */}
-          {step === 2 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 2 OF {TOTAL_STEPS}</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Teach me what you sell</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>I'll use this to generate smarter insights during calls</div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>What do you sell?</div>
-                <input style={inputStyle} placeholder="e.g. Luxury apartments in Dubai Marina" value={form.product} onChange={e => update('product', e.target.value)} />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Company website <span style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span></div>
-                <input style={inputStyle} placeholder="https://yourcompany.com" value={form.website} onChange={e => update('website', e.target.value)} />
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 — Competitors */}
-          {step === 3 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 3 OF {TOTAL_STEPS}</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Know your battlefield</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>Add your top competitors so I can help you differentiate</div>
-              {form.competitors.map((comp, i) => (
-                <div key={i} style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>
-                    Competitor {i + 1} {i > 0 && <span style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span>}
-                  </div>
-                  <input style={inputStyle} placeholder={['Main competitor name', 'Second competitor', 'Third competitor'][i]}
-                    value={comp} onChange={e => {
-                      const updated = [...form.competitors]
-                      updated[i] = e.target.value
-                      update('competitors', updated)
-                    }} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Step 4 — Document upload */}
-          {step === 4 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 4 OF {TOTAL_STEPS}</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Train your AI agent</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>
-                Upload documents so your AI learns your exact context
-              </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', marginBottom: 24 }}>
-                Max 3 files · PDF, TXT, or Word · 5MB each · Optional but recommended
-              </div>
-
-              {/* What to upload */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 24 }}>
-                {docTypes.map((d, i) => (
-                  <div key={i} style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 20 }}>{d.icon}</span>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{d.label}</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{d.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Upload area */}
-              {uploadedFiles.length < 3 && (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{ border: '2px dashed rgba(0,229,160,0.2)', borderRadius: 14, padding: '28px 20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', marginBottom: 16, background: 'rgba(0,229,160,0.03)' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,229,160,0.4)'; (e.currentTarget as HTMLDivElement).style.background = 'rgba(0,229,160,0.06)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,229,160,0.2)'; (e.currentTarget as HTMLDivElement).style.background = 'rgba(0,229,160,0.03)'; }}
-                >
-                  {uploading ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'rgba(255,255,255,0.5)' }}>
-                      <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: '#00e5a0', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                      Uploading...
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>📎</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#00e5a0', marginBottom: 4 }}>Click to upload documents</div>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>PDF, TXT, DOC, DOCX · Max 5MB each</div>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <input ref={fileInputRef} type="file" accept=".pdf,.txt,.doc,.docx" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
-
-              {/* Error */}
-              {uploadError && (
-                <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', fontSize: 13, color: '#ff8a94', marginBottom: 12 }}>
-                  ⚠ {uploadError}
-                </div>
-              )}
-
-              {/* Uploaded files */}
-              {uploadedFiles.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {uploadedFiles.map((file, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.15)' }}>
-                      <div style={{ fontSize: 20, flexShrink: 0 }}>
-                        {file.name.endsWith('.pdf') ? '📄' : file.name.endsWith('.txt') ? '📝' : '📃'}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#00e5a0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{formatSize(file.size)}</div>
-                      </div>
-                      <button onClick={() => removeFile(i)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, padding: '2px 6px', flexShrink: 0 }}>✕</button>
-                    </div>
-                  ))}
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', textAlign: 'center', marginTop: 4 }}>
-                    {uploadedFiles.length}/3 files uploaded · Your AI agent will learn from these
-                  </div>
-                </div>
-              )}
-
-              {uploadedFiles.length === 0 && (
-                <div style={{ textAlign: 'center', marginTop: 8 }}>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setStep(s => s + 1)}>
-                    Skip for now
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 5 — Objection style */}
-          {step === 5 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 5 OF {TOTAL_STEPS}</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Choose your style</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>How do you prefer to handle objections?</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-                {objectionStyles.map(s => (
-                  <div key={s.label} style={{ ...optionStyle(form.objectionStyle === s.label), display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => update('objectionStyle', s.label)}>
-                    <div>
-                      <div style={{ fontWeight: 600, marginBottom: 2 }}>{s.label}</div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>{s.desc}</div>
-                    </div>
-                    {form.objectionStyle === s.label && <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#00e5a0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#000', fontWeight: 700, flexShrink: 0 }}>✓</div>}
-                  </div>
-                ))}
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Preferred closing style</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {closingStyles.map(s => (
-                    <div key={s.label} style={{ ...optionStyle(form.closingStyle === s.label), fontSize: 13 }} onClick={() => update('closingStyle', s.label)}>
-                      <div style={{ fontWeight: 600, marginBottom: 2 }}>{s.label}</div>
-                      <div style={{ fontSize: 11, opacity: 0.6 }}>{s.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6 — Set targets */}
-          {step === 6 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>STEP 6 OF {TOTAL_STEPS}</div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 8 }}>Set your targets</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 32 }}>I'll track your progress and coach you toward these goals</div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Monthly Revenue Target</div>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', fontSize: 15 }}>AED</span>
-                  <input style={{ ...inputStyle, paddingLeft: 56 }} placeholder="500,000" value={form.monthlyTarget} onChange={e => update('monthlyTarget', e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Daily Calls Target</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
-                  {['5', '10', '15', '20', '25+'].map(n => (
-                    <div key={n} style={{ ...optionStyle(form.dailyCalls === n), textAlign: 'center', padding: '12px 8px' }} onClick={() => update('dailyCalls', n)}>
-                      <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700 }}>{n}</div>
-                      <div style={{ fontSize: 10, opacity: 0.6 }}>calls</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 7 — All set */}
-          {step === 7 && (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg,#00e5a0,#4488ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, margin: '0 auto 24px', animation: 'float 3s ease-in-out infinite', boxShadow: '0 0 40px rgba(0,229,160,0.3)' }}>
-                🎉
-              </div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, marginBottom: 12 }}>You're all set!</div>
-              <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 32, lineHeight: 1.7 }}>
-                Your AI agent is calibrated and ready.<br />Let's close some deals.
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', marginBottom: 32 }}>
-                {[
-                  { label: 'Profile calibrated', value: form.fullName },
-                  { label: 'Industry', value: form.industry },
-                  { label: 'Objection style', value: form.objectionStyle },
-                  { label: 'Documents uploaded', value: uploadedFiles.length > 0 ? `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}` : 'None — can add later' },
-                  { label: 'Monthly target', value: form.monthlyTarget ? `AED ${form.monthlyTarget}` : 'Not set' },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.15)' }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#00e5a0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#000', fontWeight: 700, flexShrink: 0 }}>✓</div>
-                    <div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{item.label}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#00e5a0' }}>{item.value || '—'}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Navigation */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 32 }}>
-            {step > 1 && step < 7 && (
-              <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                Back
-              </button>
-            )}
-            {step < 6 && step !== 4 && (
-              <button onClick={() => setStep(s => s + 1)} disabled={!canProceed()} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: canProceed() ? 'linear-gradient(135deg,#00e5a0,#00b8ff)' : 'rgba(255,255,255,0.08)', color: canProceed() ? '#000' : 'rgba(255,255,255,0.25)', fontSize: 15, fontWeight: 700, cursor: canProceed() ? 'pointer' : 'not-allowed', fontFamily: 'DM Sans, sans-serif', transition: 'all 0.2s' }}>
-                Next →
-              </button>
-            )}
-            {step === 4 && (
-              <button onClick={() => setStep(5)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                {uploadedFiles.length > 0 ? `Continue with ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} →` : 'Skip for now →'}
-              </button>
-            )}
-            {step === 6 && (
-              <button onClick={() => setStep(7)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
-                Finish Setup →
-              </button>
-            )}
-            {step === 7 && (
-              <button onClick={handleFinish} disabled={saving} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: saving ? 'rgba(0,229,160,0.4)' : 'linear-gradient(135deg,#00e5a0,#00b8ff)', color: '#000', fontSize: 15, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                {saving && <div style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
-                {saving ? 'Saving...' : 'Go to Dashboard →'}
-              </button>
-            )}
+        {/* Topbar */}
+        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 50, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(40px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span onClick={() => window.location.href = '/'} style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.3px', color: 'rgba(255,255,255,0.9)', cursor: 'pointer' }}>DealFlow AI</span>
+            <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>Post-Call Summary</span>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => window.location.href = '/history'} style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>← History</button>
+            <button onClick={() => window.location.href = '/'} style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>+ New Call</button>
           </div>
         </div>
 
-        <div style={{ marginTop: 20, fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
-          Step {step} of {TOTAL_STEPS}
+        {/* Content */}
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px', position: 'relative', zIndex: 1 }}>
+
+          {/* Hero header */}
+          <div style={{ borderRadius: 32, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(40px)', padding: '32px 36px', marginBottom: 20, position: 'relative', overflow: 'hidden', animation: 'fadeUp 0.4s ease' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)' }} />
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 10 }}>Post-Call Summary</div>
+                <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.8px', color: 'rgba(255,255,255,0.92)', marginBottom: 6 }}>
+                  {call.contact_name} <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>| {call.company}</span>
+                </div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>{formatDate(call.created_at)}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {[
+                  { label: 'Duration', value: formatDuration(call.duration), color: '#30d158' },
+                  { label: 'Deal Health', value: `${ins.dealHealthScore || 0}%`, color: '#ff9f0a' },
+                  { label: 'Talk Ratio', value: `${ins.talkRatio || 0}%`, color: '#0a84ff' },
+                ].map((s, i) => (
+                  <div key={i} style={{ textAlign: 'center', padding: '14px 22px', borderRadius: 18, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div style={{ fontSize: 24, fontWeight: 600, color: s.color, letterSpacing: '-0.5px', marginBottom: 3 }}>{s.value}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Score cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, animation: 'fadeUp 0.4s ease 0.1s both' }}>
+            <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#ff9f0a', filter: 'blur(50px)', opacity: 0.1, pointerEvents: 'none' }} />
+              <AppleRing value={ins.dealHealthScore || 0} color="#ff9f0a" size={80} stroke={8} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>Deal Health</div>
+                <div style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 2 }}>{(ins.dealHealthScore||0)>=80?'Strong':(ins.dealHealthScore||0)>=60?'On Track':'At Risk'}</div>
+                <div style={{ fontSize: 12, color: '#ff9f0a' }}>Overall progress</div>
+              </div>
+            </div>
+            <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#30d158', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
+              <AppleRing value={ins.talkRatio || 0} color="#30d158" size={80} stroke={8} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>Talk Ratio</div>
+                <div style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 2 }}>{(ins.talkRatio||0)<=50?'Balanced':'High Talk'}</div>
+                <div style={{ fontSize: 12, color: '#30d158' }}>Agent speaking time</div>
+              </div>
+            </div>
+            <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#0a84ff', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: ins.sentiment==='positive'?'rgba(48,209,88,0.1)':'rgba(255,159,10,0.1)', border: `2px solid ${ins.sentiment==='positive'?'#30d158':'#ff9f0a'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
+                {ins.sentiment==='positive'?'😊':ins.sentiment==='negative'?'😟':'😐'}
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>Sentiment</div>
+                <div style={{ fontSize: 20, fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: 2, textTransform: 'capitalize' }}>{ins.sentiment||'Neutral'}</div>
+                <div style={{ fontSize: 12, color: ins.sentiment==='positive'?'#30d158':'#ff9f0a' }}>Customer mood</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20, animation: 'fadeUp 0.4s ease 0.2s both' }}>
+            {ins.nextActions && (
+              <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Follow-up Actions</div>
+                {ins.nextActions.map((a: string, i: number) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i<ins.nextActions.length-1?'1px solid rgba(255,255,255,0.04)':'none', alignItems: 'flex-start' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${i===0?'#0a84ff':'rgba(255,255,255,0.15)'}`, background: i===0?'rgba(10,132,255,0.12)':'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                      {i===0 && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#0a84ff' }} />}
+                    </div>
+                    <span style={{ fontSize: 13, color: i===0?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.45)', fontWeight: i===0?500:400, lineHeight: 1.5 }}>{a}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {ins.objections && (
+              <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 24, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#ff453a', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ff453a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Objections Raised
+                </div>
+                {ins.objections.length===0
+                  ? <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>No objections detected</div>
+                  : ins.objections.map((o: string, i: number) => (
+                    <div key={i} style={{ padding: '10px 14px', borderRadius: 14, background: 'rgba(255,69,58,0.06)', border: '1px solid rgba(255,69,58,0.12)', fontSize: 13, color: 'rgba(255,180,185,0.85)', marginBottom: 8, lineHeight: 1.5 }}>{o}</div>
+                  ))
+                }
+              </div>
+            )}
+            {ins.customerNeeds && (
+              <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Customer Needs</div>
+                {ins.customerNeeds.map((n: string, i: number) => {
+                  const colors = ['#ff9f0a','#0a84ff','#ff453a','#30d158']
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i<ins.customerNeeds.length-1?'1px solid rgba(255,255,255,0.04)':'none' }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: colors[i%colors.length], boxShadow: `0 0 8px ${colors[i%colors.length]}`, flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}>{n}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {ins.hotTopics && (
+              <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Topics Discussed</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {ins.hotTopics.map((t: string, i: number) => {
+                    const c = tagColors[i%tagColors.length]
+                    return <span key={i} style={{ padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, background: c.bg, color: c.color, border: `1px solid ${c.border}` }}>{t}</span>
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* AI Summary */}
+          <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 28, marginBottom: 16, animation: 'fadeUp 0.4s ease 0.3s both' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>AI Coaching Summary</div>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✦</div>
+            </div>
+            {generatingSummary ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'rgba(255,255,255,0.6)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                Generating your personalized coaching summary...
+              </div>
+            ) : aiSummary ? (
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.9 }}>{aiSummary}</div>
+            ) : ins.notes ? (
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.9 }}>{ins.notes}</div>
+            ) : (
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>No transcript available for AI summary</div>
+            )}
+          </div>
+
+          {/* Transcript */}
+          {call.transcript && (
+            <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 28, marginBottom: 16, animation: 'fadeUp 0.4s ease 0.4s both' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Full Transcript</div>
+              <div className="custom-scrollbar" style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.9, maxHeight: 260, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>{call.transcript}</div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {call.notes && (
+            <div style={{ borderRadius: 28, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', padding: 28, animation: 'fadeUp 0.4s ease 0.5s both' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Your Notes</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8 }}>{call.notes}</div>
+            </div>
+          )}
         </div>
       </div>
     </>
