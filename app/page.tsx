@@ -246,6 +246,17 @@ export default function Dashboard() {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
   const [lang, setLang] = useState<'en' | 'ar'>('en')
 
+useEffect(() => {
+  const saved = localStorage.getItem('lang') as 'en' | 'ar'
+  if (saved) setLang(saved)
+}, [])
+
+const toggleLang = () => {
+  const next = lang === 'en' ? 'ar' : 'en'
+  setLang(next)
+  localStorage.setItem('lang', next)
+}
+
   const tr = translations[lang]
   const isRTL = lang === 'ar'
 
@@ -623,8 +634,7 @@ export default function Dashboard() {
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <button onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')}
-                  style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}>
+                <button onClick={toggleLang}                  style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}>
                   {isRTL ? '🇬🇧 EN' : '🇦🇪 AR'}
                 </button>
                 <div style={{ textAlign: isRTL ? 'left' : 'right' }}>

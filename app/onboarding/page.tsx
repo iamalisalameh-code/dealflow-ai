@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 
 const TOTAL_STEPS = 7
@@ -199,6 +199,16 @@ export default function OnboardingPage() {
   // Step 1: State & RTL
   const [lang, setLang] = useState<Lang>('en')
   const isRTL = lang === 'ar'
+  useEffect(() => {
+    const saved = localStorage.getItem('lang') as 'en' | 'ar'
+    if (saved) setLang(saved)
+  }, [])
+
+  const toggleLang = () => {
+    const next = lang === 'en' ? 'ar' : 'en'
+    setLang(next)
+    localStorage.setItem('lang', next)
+  }
   const tr = translations[lang]
 
   const [form, setForm] = useState({
@@ -342,7 +352,7 @@ export default function OnboardingPage() {
 
         {/* Language Toggle */}
         <button
-          onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')}
+          onClick={toggleLang}
           style={{ position: 'absolute', top: 32, [isRTL ? 'left' : 'right']: 32, zIndex: 100, height: 38, padding: '0 16px', borderRadius: 19, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'var(--card-bg)', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
         >
           {tr.toggleLang}

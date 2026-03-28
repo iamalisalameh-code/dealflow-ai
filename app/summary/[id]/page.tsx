@@ -141,6 +141,16 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
   // Step 1: State & RTL
   const [lang, setLang] = useState<Lang>('en')
   const isRTL = lang === 'ar'
+  useEffect(() => {
+    const saved = localStorage.getItem('lang') as 'en' | 'ar'
+    if (saved) setLang(saved)
+  }, [])
+
+  const toggleLang = () => {
+    const next = lang === 'en' ? 'ar' : 'en'
+    setLang(next)
+    localStorage.setItem('lang', next)
+  }
   const tr = translations[lang]
 
   useEffect(() => {
