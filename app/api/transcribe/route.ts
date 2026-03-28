@@ -4,6 +4,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData()
     const audio = formData.get('audio') as Blob
+    const language = (formData.get('language') as string) || 'en'
 
     if (!audio) {
       return NextResponse.json({ error: 'No audio provided' }, { status: 400 })
@@ -11,17 +12,20 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await audio.arrayBuffer())
 
-    const response = await fetch(
-      'https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&utterances=true&multichannel=true',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${process.env.DEEPGRAM_API_KEY}`,
-          'Content-Type': 'audio/webm',
-        },
-        body: buffer,
-      }
-    )
+    // Build Deepgram URL based on language
+    const isArabic = language === 'ar'
+    const deepgramUrl = isArabic
+      ? 'https://api.deepgram.com/v1/listen?model=nova-2&language=ar&smart_format=true&punctuate=true&diarize=true&utterances=true&multichannel=true'
+      : 'https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&utterances=true&multichannel=true'
+
+    const response = await fetch(deepgramUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${process.env.DEEPGRAM_API_KEY}`,
+        'Content-Type': 'audio/webm',
+      },
+      body: buffer,
+    })
 
     const result = await response.json()
 
