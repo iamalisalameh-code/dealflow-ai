@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await audio.arrayBuffer())
 
     const response = await fetch(
-      'https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&utterances=true',
+      'https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&utterances=true&multichannel=true',
       {
         method: 'POST',
         headers: {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       transcript: transcript?.transcript || '',
       words: transcript?.words || [],
       utterances: utterances.map((u: any) => ({
-        speaker: u.speaker,
+        speaker: u.channel !== undefined ? u.channel : u.speaker,
         text: u.transcript,
         start: u.start,
         end: u.end,
