@@ -199,15 +199,20 @@ interface Insights {
 interface TranscriptLine { speaker: number, text: string }
 
 const defaultInsights: Insights = {
-  hotTopics: ['ROI', 'Investment', 'Scalability', 'Location'],
-  objections: ['Service charges (AED 25/sqft) are too high', 'Needs board approval first'],
-  keyQuestions: ['What is your primary goal: Capital Appreciation or Rental Yield?', 'Have you looked at similar units in Business Bay recently?', 'Are you planning to finance this or pay cash?'],
-  nextActions: ['Schedule a Zoom demo for the 3-Bedroom layout tomorrow at 4 PM', 'Send ROI comparison sheet via WhatsApp', 'Follow up on financing pre-approval'],
-  customerNeeds: ['Budget: Under AED 2.5 Million', 'Location: 15 mins to Downtown', 'Timeline: Move in by Q4 2025'],
-  dealHealthScore: 86, sentiment: 'positive', talkRatio: 47, notes: '',
-  coachingScore: 72,
-  coachingBreakdown: { opening: 8, objectionHandling: 6, activeListening: 7, closingMomentum: 5 },
-  buyingSignals: [], hesitationMoments: [], energyLevel: 'confident',
+  hotTopics: [],
+  objections: [],
+  keyQuestions: [],
+  nextActions: [],
+  customerNeeds: [],
+  dealHealthScore: 0,
+  sentiment: 'neutral',
+  talkRatio: 0,
+  notes: '',
+  coachingScore: 0,
+  coachingBreakdown: { opening: 0, objectionHandling: 0, activeListening: 0, closingMomentum: 0 },
+  buyingSignals: [],
+  hesitationMoments: [],
+  energyLevel: 'steady',
 }
 
 export default function Dashboard() {
