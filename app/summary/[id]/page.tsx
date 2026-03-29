@@ -33,7 +33,6 @@ function AppleRing({ value, color, size = 80, stroke = 8 }: { value: number, col
   )
 }
 
-// Step 2: Translations Dictionary
 const translations = {
   en: {
     postCallSummary: 'Post-Call Summary',
@@ -76,7 +75,22 @@ const translations = {
     atRisk: 'At Risk',
     balanced: 'Balanced',
     highTalk: 'High Talk',
-    toggleLang: '🇦🇪 AR'
+    toggleLang: '🇦🇪 AR',
+    coachingScore: 'Coaching Score',
+    callQuality: 'Call quality score',
+    opening: 'Opening',
+    objectionHandling: 'Objections',
+    activeListening: 'Listening',
+    closingMomentum: 'Closing',
+    buyingSignals: 'Buying Signals',
+    noBuyingSignals: 'No buying signals detected',
+    detectedSignals: 'detected during call',
+    agentEnergy: 'Agent Energy',
+    energyConfident: 'High energy — great momentum',
+    energySteady: 'Steady pace — keep going',
+    energyLow: 'Energy dropping — pick it up',
+    energyFast: 'Too fast — slow down',
+    clientHesitating: 'Client hesitation moments',
   },
   ar: {
     postCallSummary: 'ملخص بعد المكالمة',
@@ -119,11 +133,26 @@ const translations = {
     atRisk: 'في خطر',
     balanced: 'متوازن',
     highTalk: 'تحدث عالي',
-    toggleLang: '🇬🇧 EN'
+    toggleLang: '🇬🇧 EN',
+    coachingScore: 'نقاط التدريب',
+    callQuality: 'نقاط جودة المكالمة',
+    opening: 'الافتتاح',
+    objectionHandling: 'الاعتراضات',
+    activeListening: 'الاستماع',
+    closingMomentum: 'الإغلاق',
+    buyingSignals: 'إشارات الشراء',
+    noBuyingSignals: 'لم يتم اكتشاف إشارات شراء',
+    detectedSignals: 'تم اكتشافها خلال المكالمة',
+    agentEnergy: 'طاقة الوكيل',
+    energyConfident: 'طاقة عالية — زخم رائع',
+    energySteady: 'وتيرة ثابتة — استمر',
+    energyLow: 'الطاقة تنخفض — رفع المستوى',
+    energyFast: 'سريع جداً — تمهّل',
+    clientHesitating: 'لحظات تردد العميل',
   }
-} as const;
+} as const
 
-type Lang = 'en' | 'ar';
+type Lang = 'en' | 'ar'
 
 export default function SummaryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params)
@@ -131,16 +160,13 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
   const [loading, setLoading] = useState(true)
   const [aiSummary, setAiSummary] = useState('')
   const [generatingSummary, setGeneratingSummary] = useState(false)
-
-  // --- Follow-up Generator States ---
   const [followup, setFollowup] = useState<any>(null)
   const [generatingFollowup, setGeneratingFollowup] = useState(false)
   const [followupMode, setFollowupMode] = useState<'whatsapp' | 'email'>('whatsapp')
   const [copied, setCopied] = useState(false)
-
-  // Step 1: State & RTL
   const [lang, setLang] = useState<Lang>('en')
   const isRTL = lang === 'ar'
+
   useEffect(() => {
     const saved = localStorage.getItem('lang') as 'en' | 'ar'
     if (saved) setLang(saved)
@@ -151,6 +177,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
     setLang(next)
     localStorage.setItem('lang', next)
   }
+
   const tr = translations[lang]
 
   useEffect(() => {
@@ -181,7 +208,6 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
     setGeneratingSummary(false)
   }
 
-  // --- Follow-up Generator Functions ---
   const generateFollowup = async () => {
     setGeneratingFollowup(true)
     try {
@@ -197,9 +223,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
   }
 
   const copyToClipboard = () => {
-    const text = followupMode === 'whatsapp'
-      ? followup.whatsapp
-      : `Subject: ${followup.email.subject}\n\n${followup.email.body}`
+    const text = followupMode === 'whatsapp' ? followup.whatsapp : `Subject: ${followup.email.subject}\n\n${followup.email.body}`
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -236,6 +260,21 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
 
   const ins = call.insights || {}
 
+  const energyMap: Record<string, { color: string, pct: number, icon: string, desc: string }> = {
+    confident: { color: '#30d158', pct: 90, icon: '🔥', desc: tr.energyConfident },
+    steady: { color: '#0a84ff', pct: 65, icon: '✅', desc: tr.energySteady },
+    low: { color: '#ff9f0a', pct: 35, icon: '⚠️', desc: tr.energyLow },
+    fast: { color: '#ff453a', pct: 80, icon: '⚡', desc: tr.energyFast },
+  }
+  const energy = energyMap[ins.energyLevel] || energyMap.steady
+
+  const coachingBreakdown = [
+    { label: tr.opening, value: ins.coachingBreakdown?.opening || 0, color: '#0a84ff' },
+    { label: tr.objectionHandling, value: ins.coachingBreakdown?.objectionHandling || 0, color: '#ff9f0a' },
+    { label: tr.activeListening, value: ins.coachingBreakdown?.activeListening || 0, color: '#bf5af2' },
+    { label: tr.closingMomentum, value: ins.coachingBreakdown?.closingMomentum || 0, color: '#30d158' },
+  ]
+
   return (
     <>
       <style>{`
@@ -249,7 +288,6 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
         @keyframes spin { to{transform:rotate(360deg)} }
       `}</style>
 
-      {/* Step 3: Add dir to root div */}
       <div dir={isRTL ? 'rtl' : 'ltr'} style={{ minHeight: '100vh', background: 'var(--bg)' }}>
 
         {/* Spatial mesh */}
@@ -266,10 +304,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{tr.postCallSummary}</span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <button 
-              onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')} 
-              style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
-            >
+            <button onClick={toggleLang} style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}>
               {tr.toggleLang}
             </button>
             <button onClick={() => window.location.href = '/history'} style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: 'var(--card-hover)', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{tr.history}</button>
@@ -306,10 +341,10 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
 
-          {/* Score cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, animation: 'fadeUp 0.4s ease 0.1s both' }}>
+          {/* Score cards row 1 — existing 3 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 16, animation: 'fadeUp 0.4s ease 0.1s both' }}>
             <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-20px', [isRTL ? 'left' : 'right']: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#ff9f0a', filter: 'blur(50px)', opacity: 0.1, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#ff9f0a', filter: 'blur(50px)', opacity: 0.1, pointerEvents: 'none' }} />
               <AppleRing value={ins.dealHealthScore || 0} color="#ff9f0a" size={80} stroke={8} />
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 6 }}>{tr.dealHealth}</div>
@@ -318,7 +353,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
             <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-20px', [isRTL ? 'left' : 'right']: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#30d158', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#30d158', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
               <AppleRing value={ins.talkRatio || 0} color="#30d158" size={80} stroke={8} />
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 6 }}>{tr.talkRatio}</div>
@@ -327,7 +362,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
             <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-20px', [isRTL ? 'left' : 'right']: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#0a84ff', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#0a84ff', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
               <div style={{ width: 80, height: 80, borderRadius: '50%', background: ins.sentiment==='positive'?'rgba(48,209,88,0.1)':'rgba(255,159,10,0.1)', border: '2px solid ' + (ins.sentiment==='positive'?'#30d158':'#ff9f0a'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
                 {ins.sentiment==='positive'?'😊':ins.sentiment==='negative'?'😟':'😐'}
               </div>
@@ -335,6 +370,81 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 6 }}>{tr.sentiment}</div>
                 <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2, textTransform: 'capitalize' }}>{ins.sentiment||'Neutral'}</div>
                 <div style={{ fontSize: 12, color: ins.sentiment==='positive'?'#30d158':'#ff9f0a' }}>{tr.customerMood}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* NEW — Score cards row 2: Coaching Score + Buying Signals + Energy */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, animation: 'fadeUp 0.4s ease 0.15s both' }}>
+
+            {/* Coaching Score */}
+            <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#bf5af2', filter: 'blur(50px)', opacity: 0.1, pointerEvents: 'none' }} />
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 14 }}>{tr.coachingScore}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 14 }}>
+                <div style={{ fontSize: 42, fontWeight: 700, color: (ins.coachingScore||0) >= 80 ? '#30d158' : (ins.coachingScore||0) >= 60 ? '#ff9f0a' : '#ff453a', letterSpacing: '-2px', lineHeight: 1 }}>{ins.coachingScore || 0}</div>
+                <div style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>/100</div>
+              </div>
+              {coachingBreakdown.map((item, i) => (
+                <div key={i} style={{ marginBottom: 7 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{item.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: item.color }}>{item.value}/10</span>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: 'var(--divider)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 2, background: item.color, width: (item.value / 10 * 100) + '%', transition: 'width 0.8s ease' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Buying Signals */}
+            <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#30d158', filter: 'blur(50px)', opacity: ins.buyingSignals?.length > 0 ? 0.12 : 0.04, transition: 'opacity 0.5s', pointerEvents: 'none' }} />
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: ins.buyingSignals?.length > 0 ? '#30d158' : 'var(--text-tertiary)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                {ins.buyingSignals?.length > 0 && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#30d158' }} />}
+                {tr.buyingSignals}
+                {ins.buyingSignals?.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#30d158' }}>{ins.buyingSignals.length}</span>}
+              </div>
+              {!ins.buyingSignals?.length ? (
+                <div style={{ fontSize: 13, color: 'var(--text-dim)', fontStyle: 'italic', marginBottom: 8 }}>{tr.noBuyingSignals}</div>
+              ) : (
+                <div className="cs" style={{ maxHeight: 160, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {ins.buyingSignals.map((signal: string, i: number) => (
+                    <div key={i} style={{ padding: '8px 12px', borderRadius: 12, background: 'rgba(48,209,88,0.08)', border: '1px solid rgba(48,209,88,0.2)', fontSize: 12, color: 'var(--text-primary)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                      <span style={{ color: '#30d158', flexShrink: 0 }}>⚡</span>
+                      <span style={{ lineHeight: 1.5 }}>{signal}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {ins.hesitationMoments?.length > 0 && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--divider)' }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#ff9f0a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>{tr.clientHesitating}</div>
+                  {ins.hesitationMoments.slice(0, 2).map((m: string, i: number) => (
+                    <div key={i} style={{ fontSize: 11, color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: 4 }}>"{m}"</div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Agent Energy */}
+            <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: energy.color, filter: 'blur(50px)', opacity: 0.1, pointerEvents: 'none' }} />
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 16 }}>{tr.agentEnergy}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+                <div style={{ fontSize: 42 }}>{energy.icon}</div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: energy.color, textTransform: 'capitalize', marginBottom: 4, letterSpacing: '-0.5px' }}>{ins.energyLevel || 'steady'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{energy.desc}</div>
+                </div>
+              </div>
+              <div style={{ height: 8, borderRadius: 4, background: 'var(--divider)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 4, background: `linear-gradient(90deg, ${energy.color}80, ${energy.color})`, width: energy.pct + '%', transition: 'width 1s ease' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Low</span>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>High</span>
               </div>
             </div>
           </div>
@@ -356,7 +466,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
             )}
             {ins.objections && (
               <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: 24, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: '-20px', [isRTL ? 'left' : 'right']: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#ff453a', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#ff453a', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ff453a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                   {tr.objectionsRaised}
@@ -448,29 +558,25 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
             </div>
             {followup && (
               <>
-                {/* Toggle */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                   {(['whatsapp', 'email'] as const).map(mode => (
                     <button key={mode} onClick={() => setFollowupMode(mode)} style={{ height: 36, padding: '0 18px', borderRadius: 18, border: '1px solid ' + (followupMode === mode ? 'var(--card-border)' : 'transparent'), background: followupMode === mode ? 'var(--input-bg)' : 'transparent', color: followupMode === mode ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: 13, fontWeight: followupMode === mode ? 600 : 400, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
                       {mode === 'whatsapp' ? tr.whatsapp : tr.email}
                     </button>
                   ))}
-                  <button onClick={() => { setFollowup(null); setFollowupMode('whatsapp') }} style={{ height: 36, padding: '0 14px', borderRadius: 18, border: '1px solid var(--card-border)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', [isRTL ? 'marginRight' : 'marginLeft']: 'auto' }}>
+                  <button onClick={() => { setFollowup(null); setFollowupMode('whatsapp') }} style={{ height: 36, padding: '0 14px', borderRadius: 18, border: '1px solid var(--card-border)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', marginLeft: 'auto' }}>
                     {tr.regenerate}
                   </button>
                 </div>
-                {/* Email subject */}
                 {followupMode === 'email' && followup.email?.subject && (
                   <div style={{ padding: '10px 16px', borderRadius: 12, background: 'var(--input-bg)', border: '1px solid var(--card-border)', marginBottom: 10, fontSize: 13, color: 'var(--text-secondary)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', [isRTL ? 'marginLeft' : 'marginRight']: 8 }}>{tr.subject}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: 8 }}>{tr.subject}</span>
                     {followup.email.subject}
                   </div>
                 )}
-                {/* Message body */}
                 <div style={{ padding: '18px 20px', borderRadius: 18, background: followupMode === 'whatsapp' ? 'rgba(48,209,88,0.06)' : 'rgba(10,132,255,0.06)', border: '1px solid ' + (followupMode === 'whatsapp' ? 'rgba(48,209,88,0.15)' : 'rgba(10,132,255,0.15)'), fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.8, whiteSpace: 'pre-wrap', marginBottom: 16, fontFamily: 'inherit' }}>
                   {followupMode === 'whatsapp' ? followup.whatsapp : followup.email?.body}
                 </div>
-                {/* Actions */}
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={copyToClipboard} style={{ flex: 1, height: 44, borderRadius: 22, border: 'none', background: copied ? 'rgba(48,209,88,0.9)' : 'var(--text-primary)', color: copied ? '#000' : 'var(--bg)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
                     {copied ? tr.copied : tr.copyToClipboard}
