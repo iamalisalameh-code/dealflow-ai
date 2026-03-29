@@ -433,7 +433,7 @@ const toggleLang = () => {
     chunksRef.current = []
     mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     stream.getAudioTracks()[0].onended = () => { if (mediaRecorderRef.current?.state === 'recording') endCall() }
-    mediaRecorder.start(5000)
+    mediaRecorder.start(1000)
     setCallMode(mode)
     setIsLive(true)
     setSeconds(0)
@@ -445,7 +445,7 @@ const toggleLang = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         processChunk(blob)
       }
-    }, 8000)
+    }, 5000)
   }
   
 
