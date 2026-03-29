@@ -445,7 +445,7 @@ const toggleLang = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         processChunk(blob)
       }
-    }, 15000)
+    }, 8000)
   }
   
 
