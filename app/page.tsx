@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import ProfileDropdown from '@/components/ProfileDropdown'
 
 function AppleRing({ value, color, size = 120, stroke = 12 }: { value: number, color: string, size?: number, stroke?: number }) {
   const r = (size - stroke * 2) / 2
@@ -647,9 +648,7 @@ const toggleLang = () => {
                   <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{agentName}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{tr.agent}</div>
                 </div>
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, var(--text-dim), var(--divider))', border: '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600 }}>
-                  {agentName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}
-                </div>
+                <ProfileDropdown agentName={agentName} lang={lang} />
               </div>
             </header>
 
