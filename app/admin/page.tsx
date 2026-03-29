@@ -125,12 +125,24 @@ export default function AdminPage() {
         role: 'agent',
       })
       // Add to invites
-      const { data: invite } = await supabase.from('invites').insert({
-        team_id: team.id,
-        email: inviteEmail,
-      }).select().single()
+const { data: invite } = await supabase.from('invites').insert({
+  team_id: team.id,
+  email: inviteEmail,
+}).select().single()
 
-      setInviteSuccess(`Invite sent to ${inviteEmail}`)
+// Send actual email
+await fetch('/api/invite', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: inviteEmail,
+    teamName: team.name,
+    inviterName: currentUser?.email || 'Your team admin',
+    inviteToken: invite?.token,
+  }),
+})
+
+setInviteSuccess(`Invite sent to ${inviteEmail}`)
       setInviteEmail('')
       loadData()
     } catch (err) { console.error(err) }
