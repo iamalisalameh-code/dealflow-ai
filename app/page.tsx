@@ -40,9 +40,9 @@ const translations = {
     meetingActive: 'Meeting Active',
     recording: 'Recording',
     aiAnalyzing: 'AI Analyzing',
-    readyToStart: 'Ready to Start · Session 04',
-    sessionLive: '🎙 Recording · Session 04',
-    meetingInProgress: '📺 Meeting in Progress · Session 04',
+    readyToStart: 'Ready to Start',
+    sessionLive: '🎙 Recording',
+    meetingInProgress: '📺 Meeting in Progress',
     newCall: 'New Call',
     selectContactToStart: 'Select a contact to start',
     selectContactBtn: 'Select contact...',
@@ -112,9 +112,9 @@ const translations = {
     meetingActive: 'الاجتماع نشط',
     recording: 'جارٍ التسجيل',
     aiAnalyzing: 'الذكاء الاصطناعي يحلل',
-    readyToStart: 'جاهز للبدء · الجلسة 04',
-    sessionLive: '🎙 جارٍ التسجيل · الجلسة 04',
-    meetingInProgress: '📺 الاجتماع جارٍ · الجلسة 04',
+    readyToStart: 'جاهز للبدء',
+    sessionLive: '🎙 جارٍ التسجيل',
+    meetingInProgress: '📺 الاجتماع جارٍ',
     newCall: 'مكالمة جديدة',
     selectContactToStart: 'اختر جهة اتصال للبدء',
     selectContactBtn: 'اختر جهة اتصال...',
@@ -609,10 +609,10 @@ const toggleLang = () => {
               { d: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z', active: true, href: '/' },
               { d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', active: false, href: '/history' },
               { d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', active: false, href: '/contacts' },
-              { d: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', active: false, href: '/' },
+              { d: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', active: false, href: '/settings' },
               { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', active: false, href: '/admin' },
             ].map((item, i) => (
-              <div key={i} onClick={() => window.location.href = item.href} style={{ width: 48, height: 48, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: item.active ? 'var(--card-hover)' : 'transparent', color: item.active ? 'var(--text-primary)' : 'var(--text-tertiary)', border: item.active ? '1px solid var(--card-border)' : '1px solid transparent', transition: 'all 0.2s' }}>
+              <div key={i} onClick={() => window.location.href = item.href} style={{ width: 48, height: 48, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: item.active ? 'rgba(10,132,255,0.15)' : 'transparent', color: item.active ? '#0a84ff' : 'var(--text-tertiary)', border: item.active ? '1px solid rgba(10,132,255,0.25)' : '1px solid transparent', boxShadow: item.active ? '0 0 12px rgba(10,132,255,0.2)' : 'none', transition: 'all 0.2s' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.d} /></svg>
               </div>
             ))}
@@ -640,7 +640,7 @@ const toggleLang = () => {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <button onClick={toggleLang}                  style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}>
                   {isRTL ? '🇬🇧 EN' : '🇦🇪 AR'}
                 </button>
