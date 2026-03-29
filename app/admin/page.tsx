@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
+import { UsersIcon, CheckIcon, PhoneIcon, BarChartIcon, BuildingIcon } from '@/components/Icons'
 
 interface Agent {
   id: string
@@ -259,7 +260,9 @@ setInviteSuccess(`Invite sent to ${inviteEmail}`)
               /* No team yet — create one */
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ width: 440, borderRadius: 32, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: 40, textAlign: 'center', animation: 'fadeUp 0.4s ease' }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>🏢</div>
+                  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+  <BuildingIcon size={56} color="var(--text-dim)" />
+</div>
                   <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.5px' }}>Create Your Team</div>
                   <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.6 }}>Set up your team workspace to invite agents, track performance, and manage features.</div>
                   <input value={teamName} onChange={e => setTeamName(e.target.value)}
@@ -289,14 +292,14 @@ setInviteSuccess(`Invite sent to ${inviteEmail}`)
                     {/* Stat cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
                       {[
-                        { label: 'Total Agents', value: stats.total_agents, color: '#bf5af2', icon: '👥' },
-                        { label: 'Active Agents', value: stats.active_agents, color: '#30d158', icon: '✅' },
-                        { label: 'Total Calls', value: stats.total_calls, color: '#0a84ff', icon: '📞' },
-                        { label: 'Avg Deal Health', value: stats.avg_health + '%', color: '#ff9f0a', icon: '📊' },
+                        { label: 'Total Agents', value: stats.total_agents, color: '#bf5af2', Icon: UsersIcon },
+                        { label: 'Active Agents', value: stats.active_agents, color: '#30d158', Icon: CheckIcon },
+                        { label: 'Total Calls', value: stats.total_calls, color: '#0a84ff', Icon: PhoneIcon },
+                        { label: 'Avg Deal Health', value: stats.avg_health + '%', color: '#ff9f0a', Icon: BarChartIcon },
                       ].map((s, i) => (
                         <div key={i} style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', position: 'relative', overflow: 'hidden' }}>
                           <div style={{ position: 'absolute', top: '-15px', right: '-15px', width: 80, height: 80, borderRadius: '50%', background: s.color, filter: 'blur(30px)', opacity: 0.15, pointerEvents: 'none' }} />
-                          <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
+                          <div style={{ marginBottom: 8 }}><s.Icon size={22} color={s.color} /></div>
                           <div style={{ fontSize: 32, fontWeight: 700, color: s.color, letterSpacing: '-1px', marginBottom: 4 }}>{s.value}</div>
                           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
                         </div>

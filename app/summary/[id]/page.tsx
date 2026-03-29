@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
+import { SmileIcon, MehIcon, FrownIcon, ZapIcon, SparkleIcon, MessageIcon, MailIcon, ActivityIcon, AlertTriangleIcon, AlertCircleIcon } from '@/components/Icons'
 
 interface Call {
   id: string
@@ -57,10 +58,10 @@ const translations = {
     yourNotes: 'Your Notes',
     followUpGenerator: 'Follow-up Generator',
     aiDraftedMessage: 'AI-drafted message based on this call',
-    generateFollowUp: '✦ Generate Follow-up',
+    generateFollowUp: 'Generate Follow-up',
     generating: 'Generating...',
-    whatsapp: '💬 WhatsApp',
-    email: '✉️ Email',
+    whatsapp: 'WhatsApp',
+    email: 'Email',
     regenerate: 'Regenerate',
     subject: 'Subject',
     copyToClipboard: 'Copy to Clipboard',
@@ -115,10 +116,10 @@ const translations = {
     yourNotes: 'ملاحظاتك',
     followUpGenerator: 'مولد المتابعة',
     aiDraftedMessage: 'رسالة مصاغة بالذكاء الاصطناعي بناءً على هذه المكالمة',
-    generateFollowUp: '✦ إنشاء متابعة',
+    generateFollowUp: 'إنشاء متابعة',
     generating: 'جاري الإنشاء...',
-    whatsapp: '💬 واتساب',
-    email: '✉️ البريد الإلكتروني',
+    whatsapp: 'واتساب',
+    email: 'البريد الإلكتروني',
     regenerate: 'إعادة إنشاء',
     subject: 'الموضوع',
     copyToClipboard: 'نسخ إلى الحافظة',
@@ -260,11 +261,11 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
 
   const ins = call.insights || {}
 
-  const energyMap: Record<string, { color: string, pct: number, icon: string, desc: string }> = {
-    confident: { color: '#30d158', pct: 90, icon: '🔥', desc: tr.energyConfident },
-    steady: { color: '#0a84ff', pct: 65, icon: '✅', desc: tr.energySteady },
-    low: { color: '#ff9f0a', pct: 35, icon: '⚠️', desc: tr.energyLow },
-    fast: { color: '#ff453a', pct: 80, icon: '⚡', desc: tr.energyFast },
+  const energyMap: Record<string, { color: string, pct: number, Icon: React.FC<any>, desc: string }> = {
+    confident: { color: '#30d158', pct: 90, Icon: ZapIcon, desc: tr.energyConfident },
+    steady: { color: '#0a84ff', pct: 65, Icon: ActivityIcon, desc: tr.energySteady },
+    low: { color: '#ff9f0a', pct: 35, Icon: AlertTriangleIcon, desc: tr.energyLow },
+    fast: { color: '#ff453a', pct: 80, Icon: AlertCircleIcon, desc: tr.energyFast },
   }
   const energy = energyMap[ins.energyLevel] || energyMap.steady
 
@@ -363,8 +364,8 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
             </div>
             <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: '#0a84ff', filter: 'blur(50px)', opacity: 0.08, pointerEvents: 'none' }} />
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: ins.sentiment==='positive'?'rgba(48,209,88,0.1)':'rgba(255,159,10,0.1)', border: '2px solid ' + (ins.sentiment==='positive'?'#30d158':'#ff9f0a'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>
-                {ins.sentiment==='positive'?'😊':ins.sentiment==='negative'?'😟':'😐'}
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: ins.sentiment==='positive'?'rgba(48,209,88,0.1)':'rgba(255,159,10,0.1)', border: '2px solid ' + (ins.sentiment==='positive'?'#30d158':'#ff9f0a'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {ins.sentiment==='positive' ? <SmileIcon size={32} color="#30d158" /> : ins.sentiment==='negative' ? <FrownIcon size={32} color="#ff453a" /> : <MehIcon size={32} color="#ff9f0a" />}
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 6 }}>{tr.sentiment}</div>
@@ -404,7 +405,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: ins.buyingSignals?.length > 0 ? '#30d158' : 'var(--text-tertiary)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 {ins.buyingSignals?.length > 0 && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#30d158' }} />}
                 {tr.buyingSignals}
-                {ins.buyingSignals?.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#30d158' }}>{ins.buyingSignals.length}</span>}
+                {ins.buyingSignals?.length > 0 && <span style={{ [isRTL ? 'marginRight' : 'marginLeft']: 'auto', fontSize: 18, fontWeight: 800, color: '#30d158' }}>{ins.buyingSignals.length}</span>}
               </div>
               {!ins.buyingSignals?.length ? (
                 <div style={{ fontSize: 13, color: 'var(--text-dim)', fontStyle: 'italic', marginBottom: 8 }}>{tr.noBuyingSignals}</div>
@@ -412,7 +413,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
                 <div className="cs" style={{ maxHeight: 160, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7 }}>
                   {ins.buyingSignals.map((signal: string, i: number) => (
                     <div key={i} style={{ padding: '8px 12px', borderRadius: 12, background: 'rgba(48,209,88,0.08)', border: '1px solid rgba(48,209,88,0.2)', fontSize: 12, color: 'var(--text-primary)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <span style={{ color: '#30d158', flexShrink: 0 }}>⚡</span>
+                      <ZapIcon size={12} color="#30d158" style={{ flexShrink: 0, marginTop: 2 }} />
                       <span style={{ lineHeight: 1.5 }}>{signal}</span>
                     </div>
                   ))}
@@ -433,7 +434,9 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: 120, height: 120, borderRadius: '50%', background: energy.color, filter: 'blur(50px)', opacity: 0.1, pointerEvents: 'none' }} />
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: 16 }}>{tr.agentEnergy}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-                <div style={{ fontSize: 42 }}>{energy.icon}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: energy.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <energy.Icon size={24} color={energy.color} />
+                </div>
                 <div>
                   <div style={{ fontSize: 22, fontWeight: 700, color: energy.color, textTransform: 'capitalize', marginBottom: 4, letterSpacing: '-0.5px' }}>{ins.energyLevel || 'steady'}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{energy.desc}</div>
@@ -510,7 +513,9 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
           <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: 28, marginBottom: 16, animation: 'fadeUp 0.4s ease 0.3s both' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{tr.aiCoachingSummary}</div>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--card-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✦</div>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--card-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <SparkleIcon size={14} color="var(--text-secondary)" />
+              </div>
             </div>
             {generatingSummary ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)', fontSize: 13 }}>
@@ -552,7 +557,7 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
               {!followup && (
                 <button onClick={generateFollowup} disabled={generatingFollowup} style={{ height: 44, padding: '0 24px', borderRadius: 22, border: 'none', background: generatingFollowup ? 'var(--input-bg)' : 'var(--text-primary)', color: generatingFollowup ? 'var(--text-secondary)' : 'var(--bg)', fontSize: 14, fontWeight: 600, cursor: generatingFollowup ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8 }}>
                   {generatingFollowup && <div style={{ width: 14, height: 14, border: '2px solid var(--card-border)', borderTopColor: 'var(--bg)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
-                  {generatingFollowup ? tr.generating : tr.generateFollowUp}
+                  {generatingFollowup ? tr.generating : <><SparkleIcon size={14} color="currentColor" /> {tr.generateFollowUp}</>}
                 </button>
               )}
             </div>
@@ -561,16 +566,16 @@ export default function SummaryPage({ params }: { params: Promise<{ id: string }
                 <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                   {(['whatsapp', 'email'] as const).map(mode => (
                     <button key={mode} onClick={() => setFollowupMode(mode)} style={{ height: 36, padding: '0 18px', borderRadius: 18, border: '1px solid ' + (followupMode === mode ? 'var(--card-border)' : 'transparent'), background: followupMode === mode ? 'var(--input-bg)' : 'transparent', color: followupMode === mode ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: 13, fontWeight: followupMode === mode ? 600 : 400, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {mode === 'whatsapp' ? tr.whatsapp : tr.email}
+                      {mode === 'whatsapp' ? <><MessageIcon size={14} color="currentColor" /> {tr.whatsapp}</> : <><MailIcon size={14} color="currentColor" /> {tr.email}</>}
                     </button>
                   ))}
-                  <button onClick={() => { setFollowup(null); setFollowupMode('whatsapp') }} style={{ height: 36, padding: '0 14px', borderRadius: 18, border: '1px solid var(--card-border)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', marginLeft: 'auto' }}>
+                  <button onClick={() => { setFollowup(null); setFollowupMode('whatsapp') }} style={{ height: 36, padding: '0 14px', borderRadius: 18, border: '1px solid var(--card-border)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', [isRTL ? 'marginRight' : 'marginLeft']: 'auto' }}>
                     {tr.regenerate}
                   </button>
                 </div>
                 {followupMode === 'email' && followup.email?.subject && (
                   <div style={{ padding: '10px 16px', borderRadius: 12, background: 'var(--input-bg)', border: '1px solid var(--card-border)', marginBottom: 10, fontSize: 13, color: 'var(--text-secondary)' }}>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: 8 }}>{tr.subject}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em', [isRTL ? 'marginLeft' : 'marginRight']: 8 }}>{tr.subject}</span>
                     {followup.email.subject}
                   </div>
                 )}

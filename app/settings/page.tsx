@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
+import { UserIcon, BriefcaseIcon, TargetIcon, FileIcon, AlertTriangleIcon, GlobeIcon } from '@/components/Icons'
 
 type Lang = 'en' | 'ar'
 
@@ -185,11 +186,11 @@ export default function SettingsPage() {
   }
 
   const tabs = [
-    { id: 'profile', label: isRTL ? 'الملف الشخصي' : 'Profile', icon: '👤' },
-    { id: 'sales', label: isRTL ? 'إعداد المبيعات' : 'Sales Setup', icon: '💼' },
-    { id: 'targets', label: isRTL ? 'الأهداف' : 'Targets', icon: '🎯' },
-    { id: 'documents', label: isRTL ? 'المستندات' : 'Documents', icon: '📄' },
-    { id: 'danger', label: isRTL ? 'منطقة الخطر' : 'Danger Zone', icon: '⚠️' },
+    { id: 'profile', label: isRTL ? 'الملف الشخصي' : 'Profile', Icon: UserIcon },
+    { id: 'sales', label: isRTL ? 'إعداد المبيعات' : 'Sales Setup', Icon: BriefcaseIcon },
+    { id: 'targets', label: isRTL ? 'الأهداف' : 'Targets', Icon: TargetIcon },
+    { id: 'documents', label: isRTL ? 'المستندات' : 'Documents', Icon: FileIcon },
+    { id: 'danger', label: isRTL ? 'منطقة الخطر' : 'Danger Zone', Icon: AlertTriangleIcon },
   ]
 
   return (
@@ -225,7 +226,7 @@ export default function SettingsPage() {
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <button onClick={() => { const next = lang === 'en' ? 'ar' : 'en'; setLang(next); localStorage.setItem('lang', next) }}
               style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {isRTL ? '🇬🇧 EN' : '🇦🇪 AR'}
+              <GlobeIcon size={13} color="currentColor" style={{ marginRight: 6 }} />{isRTL ? 'EN' : 'AR'}
             </button>
             <button onClick={() => window.location.href = '/'} style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
               {isRTL ? '← الرئيسية' : '← Dashboard'}
@@ -265,7 +266,7 @@ export default function SettingsPage() {
                 {tabs.map(tab => (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                     style={{ height: 44, padding: '0 16px', borderRadius: 14, border: '1px solid ' + (activeTab === tab.id ? (tab.id === 'danger' ? 'rgba(255,69,58,0.3)' : 'rgba(255,255,255,0.12)') : 'transparent'), background: activeTab === tab.id ? (tab.id === 'danger' ? 'rgba(255,69,58,0.08)' : 'var(--card-hover)') : 'transparent', color: activeTab === tab.id ? (tab.id === 'danger' ? '#ff453a' : 'var(--text-primary)') : 'var(--text-secondary)', fontSize: 13, fontWeight: activeTab === tab.id ? 600 : 400, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.2s', textAlign: isRTL ? 'right' : 'left' }}>
-                    <span style={{ fontSize: 16 }}>{tab.icon}</span>
+                    <tab.Icon size={16} color={activeTab === tab.id ? (tab.id === 'danger' ? '#ff453a' : 'var(--text-primary)') : 'var(--text-tertiary)'} />
                     {tab.label}
                   </button>
                 ))}
@@ -384,8 +385,8 @@ export default function SettingsPage() {
                     {(form.monthlyTarget || form.dailyCalls) && (
                       <div style={{ marginTop: 24, padding: '16px 20px', borderRadius: 16, background: 'rgba(10,132,255,0.06)', border: '1px solid rgba(10,132,255,0.12)' }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#0a84ff', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>{isRTL ? 'ملخص الأهداف' : 'Target Summary'}</div>
-                        {form.monthlyTarget && <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>📊 {isRTL ? 'الهدف الشهري' : 'Monthly target'}: <strong style={{ color: '#0a84ff' }}>AED {form.monthlyTarget}</strong></div>}
-                        {form.dailyCalls && <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>📞 {isRTL ? 'المكالمات اليومية' : 'Daily calls'}: <strong style={{ color: '#0a84ff' }}>{form.dailyCalls}</strong></div>}
+                        {form.monthlyTarget && <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>{isRTL ? 'الهدف الشهري' : 'Monthly target'}: <strong style={{ color: '#0a84ff' }}>AED {form.monthlyTarget}</strong></div>}
+                        {form.dailyCalls && <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}> {isRTL ? 'المكالمات اليومية' : 'Daily calls'}: <strong style={{ color: '#0a84ff' }}>{form.dailyCalls}</strong></div>}
                       </div>
                     )}
                   </div>

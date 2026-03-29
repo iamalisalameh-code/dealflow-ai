@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { CheckCircleIcon, XCircleIcon, ClockIcon, MicIcon, BarChartIcon, MessageIcon } from '@/components/Icons'
 
 function JoinPageContent() {
   const searchParams = useSearchParams()
@@ -176,7 +177,9 @@ function JoinPageContent() {
           {/* SUCCESS */}
           {step === 'success' && (
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 32, padding: '40px 36px', backdropFilter: 'blur(40px)', textAlign: 'center', animation: 'fadeUp 0.4s ease' }}>
-              <div style={{ fontSize: 56, marginBottom: 20, animation: 'float 3s ease-in-out infinite' }}>🎉</div>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(48,209,88,0.1)', border: '2px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', animation: 'float 3s ease-in-out infinite' }}>
+                <CheckCircleIcon size={40} color="#30d158" />
+              </div>
               <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 8 }}>You're in!</div>
               <div style={{ fontSize: 15, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>
                 Welcome to <strong style={{ color: 'var(--text-primary)' }}>{team?.name}</strong>. Your account is ready.
@@ -191,7 +194,9 @@ function JoinPageContent() {
           {/* INVALID */}
           {step === 'invalid' && (
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 32, padding: '40px 36px', backdropFilter: 'blur(40px)', textAlign: 'center', animation: 'fadeUp 0.4s ease' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
+              <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'rgba(255,69,58,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <XCircleIcon size={36} color="#ff453a" />
+              </div>
               <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Invalid Invitation</div>
               <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 24 }}>This invitation link is invalid or doesn't exist. Please ask your team admin to send a new invite.</div>
               <button onClick={() => window.location.href = '/'} style={{ height: 44, padding: '0 24px', borderRadius: 22, border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -203,7 +208,9 @@ function JoinPageContent() {
           {/* EXPIRED */}
           {step === 'expired' && (
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 32, padding: '40px 36px', backdropFilter: 'blur(40px)', textAlign: 'center', animation: 'fadeUp 0.4s ease' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>⏰</div>
+              <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'rgba(255,159,10,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <ClockIcon size={36} color="#ff9f0a" />
+              </div>
               <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Invitation Expired</div>
               <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 24 }}>This invitation has expired (invites are valid for 7 days). Please ask your team admin to send a new invite.</div>
               <button onClick={() => window.location.href = '/'} style={{ height: 44, padding: '0 24px', borderRadius: 22, border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -215,7 +222,9 @@ function JoinPageContent() {
           {/* ALREADY USED */}
           {step === 'already_used' && (
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 32, padding: '40px 36px', backdropFilter: 'blur(40px)', textAlign: 'center', animation: 'fadeUp 0.4s ease' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+              <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'rgba(48,209,88,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <CheckCircleIcon size={36} color="#30d158" />
+              </div>
               <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Already Accepted</div>
               <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 24 }}>This invitation has already been used. You're already part of the team!</div>
               <button onClick={() => window.location.href = '/'} style={{ height: 44, padding: '0 24px', borderRadius: 22, border: 'none', background: 'var(--text-primary)', color: 'var(--bg)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -239,12 +248,12 @@ function JoinPageContent() {
 
                 {/* Features */}
                 {[
-                  { icon: '🎙', text: 'Live transcription & AI coaching during calls' },
-                  { icon: '📊', text: 'Real-time deal health & buying signal detection' },
-                  { icon: '💬', text: 'Auto-generated WhatsApp & email follow-ups' },
+                  { Icon: MicIcon, text: 'Live transcription & AI coaching during calls' },
+                  { Icon: BarChartIcon, text: 'Real-time deal health & buying signal detection' },
+                  { Icon: MessageIcon, text: 'Auto-generated WhatsApp & email follow-ups' },
                 ].map((f, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 2 ? '1px solid var(--divider)' : 'none' }}>
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>{f.icon}</span>
+                    <f.Icon size={18} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
                     <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{f.text}</span>
                   </div>
                 ))}
