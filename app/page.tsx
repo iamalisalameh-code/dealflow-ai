@@ -204,12 +204,12 @@ const defaultInsights: Insights = {
   keyQuestions: [],
   nextActions: [],
   customerNeeds: [],
-  dealHealthScore: 0,
+  dealHealthScore: -1,
   sentiment: 'neutral',
-  talkRatio: 0,
+  talkRatio: -1,
   notes: '',
-  coachingScore: 0,
-  coachingBreakdown: { opening: 0, objectionHandling: 0, activeListening: 0, closingMomentum: 0 },
+  coachingScore: -1,
+  coachingBreakdown: { opening: -1, objectionHandling: -1, activeListening: -1, closingMomentum: -1 },
   buyingSignals: [],
   hesitationMoments: [],
   energyLevel: 'steady',
@@ -715,10 +715,10 @@ const toggleLang = () => {
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <div style={{ fontSize: 11, letterSpacing: isRTL ? 0 : '0.2em', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 8, fontWeight: 600 }}>{tr.dealHealth}</div>
                   <div style={{ fontSize: 42, fontWeight: 700, color: insights.dealHealthScore > 70 ? '#30d158' : insights.dealHealthScore > 40 ? '#ff9f0a' : '#ff453a', letterSpacing: '-1px', lineHeight: 1, transition: 'color 1s', marginBottom: 6 }}>
-                    {insights.dealHealthScore}%
+                    {insights.dealHealthScore < 0 ? '—' : `${insights.dealHealthScore}%`}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12, fontWeight: 500 }}>
-                    {insights.dealHealthScore >= 80 ? tr.strong : insights.dealHealthScore >= 60 ? tr.onTrack : insights.dealHealthScore >= 40 ? tr.needsAttention : tr.atRisk}
+                    {insights.dealHealthScore < 0 ? 'Yet to be calculated' : insights.dealHealthScore >= 80 ? tr.strong : insights.dealHealthScore >= 60 ? tr.onTrack : insights.dealHealthScore >= 40 ? tr.needsAttention : tr.atRisk}
                   </div>
                   <div style={{ width: '100%', height: 64 }}>
                     <svg width="100%" height="64" viewBox={`0 0 ${heartbeatData.length * 12} 64`} preserveAspectRatio="none">
@@ -808,9 +808,9 @@ const toggleLang = () => {
               <div style={{ gridColumn: 'span 3', borderRadius: 32, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: 24 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: isRTL ? 0 : '0.2em', textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 16 }}>{tr.talkRatio}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <AppleRing value={insights.talkRatio} color="#30d158" size={80} stroke={8} />
+                  <AppleRing value={insights.talkRatio < 0 ? 0 : insights.talkRatio} color="#30d158" size={80} stroke={8} />
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{insights.talkRatio <= 50 ? tr.balanced : tr.highTalk}</div>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{insights.talkRatio < 0 ? '—' : insights.talkRatio <= 50 ? tr.balanced : tr.highTalk}</div>
                     <div style={{ fontSize: 12, color: '#30d158', fontWeight: 500 }}>{insights.sentiment === 'positive' ? tr.positive : insights.sentiment === 'negative' ? tr.negative : tr.neutral}</div>
                   </div>
                 </div>
@@ -874,17 +874,17 @@ const toggleLang = () => {
               <div style={{ gridColumn: 'span 4', borderRadius: 32, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: 24 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: isRTL ? 0 : '0.2em', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 14 }}>{tr.coachingScore}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-                  <div style={{ fontSize: 38, fontWeight: 700, color: insights.coachingScore >= 80 ? '#30d158' : insights.coachingScore >= 60 ? '#ff9f0a' : '#ff453a', letterSpacing: '-1px', lineHeight: 1 }}>{insights.coachingScore}</div>
+                  <div style={{ fontSize: 38, fontWeight: 700, color: insights.coachingScore >= 80 ? '#30d158' : insights.coachingScore >= 60 ? '#ff9f0a' : '#ff453a', letterSpacing: '-1px', lineHeight: 1 }}>{insights.coachingScore < 0 ? '—' : insights.coachingScore}</div>
                   <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>/100</div>
                 </div>
                 {coachingLabels.map((item, i) => (
                   <div key={i} style={{ marginBottom: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                       <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{item.label}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: item.color }}>{item.value}/10</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: item.color }}>{item.value < 0 ? '—' : `${item.value}/10`}</span>
                     </div>
                     <div style={{ height: 3, borderRadius: 2, background: 'var(--divider)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: 2, background: item.color, width: (item.value / 10 * 100) + '%', transition: 'width 0.8s ease' }} />
+                      <div style={{ height: '100%', borderRadius: 2, background: item.color, width: (item.value < 0 ? 0 : item.value / 10 * 100) + '%', transition: 'width 0.8s ease' }} />
                     </div>
                   </div>
                 ))}
@@ -900,7 +900,7 @@ const toggleLang = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                         <div style={{ fontSize: 32 }}>{e.icon}</div>
                         <div>
-                          <div style={{ fontSize: 18, fontWeight: 600, color: e.color, textTransform: 'capitalize', marginBottom: 2 }}>{insights.energyLevel}</div>
+                          <div style={{ fontSize: 18, fontWeight: 600, color: e.color, textTransform: 'capitalize', marginBottom: 2 }}>{insights.coachingScore < 0 ? 'Yet to start' : insights.energyLevel}</div>
                           <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.desc}</div>
                         </div>
                       </div>
