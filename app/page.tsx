@@ -410,28 +410,44 @@ const toggleLang = () => {
     setIsAnalyzing(false)
   }
 
-  const processChunk = async (blob: Blob) => {
-    if (blob.size < 1000) return
-    try {
-      const formData = new FormData()
-      formData.append('audio', blob, 'chunk.webm')
-      formData.append('language', lang)
-      const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
-      const data = await res.json()
-      if (data.transcript) {
-        if (data.transcript.length > fullTranscriptRef.current.length) fullTranscriptRef.current = data.transcript
-        if (data.utterances?.length > 0) setTranscript(data.utterances.map((u: any) => ({ speaker: u.channel ?? u.speaker ?? 0, text: u.text })))
-        else setTranscript([{ speaker: 0, text: data.transcript }])
-        analyzeTranscript(fullTranscriptRef.current)
+ const processChunk = async (blob: Blob) => {
+  if (blob.size < 1000) return
+  try {
+    const formData = new FormData()
+    formData.append('audio', blob, 'chunk.webm')
+    formData.append('language', lang)
+    const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
+    const data = await res.json()
+    if (data.transcript) {
+      // Append new transcript to full transcript
+      fullTranscriptRef.current = (fullTranscriptRef.current + ' ' + data.transcript).trim()
+      // Append new utterances to transcript display
+      if (data.utterances?.length > 0) {
+        setTranscript(prev => [
+          ...prev,
+          ...data.utterances.map((u: any) => ({ speaker: u.channel ?? u.speaker ?? 0, text: u.text }))
+        ])
+      } else {
+        setTranscript(prev => [...prev, { speaker: 0, text: data.transcript }])
       }
-    } catch (err) { console.error(err) }
-  }
+      analyzeTranscript(fullTranscriptRef.current)
+    }
+  } catch (err) { console.error(err) }
+}
 
   const startRecording = (stream: MediaStream, mode: 'mic' | 'tab') => {
+    const firstChunkRef = useRef<Blob | null>(null)
     const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
     mediaRecorderRef.current = mediaRecorder
+    firstChunkRef.current = null
+chunksRef.current = []
     chunksRef.current = []
-    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+    mediaRecorder.ondataavailable = (e) => {
+  if (e.data.size > 0) {
+    if (!firstChunkRef.current) firstChunkRef.current = e.data
+    chunksRef.current.push(e.data)
+  }
+}
     stream.getAudioTracks()[0].onended = () => { if (mediaRecorderRef.current?.state === 'recording') endCall() }
     mediaRecorder.start(1000)
     setCallMode(mode)
@@ -441,11 +457,20 @@ const toggleLang = () => {
     setTranscript([])
     timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000)
     intervalRef.current = setInterval(() => {
-      if (chunksRef.current.length > 0) {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        processChunk(blob)
-      }
-    }, 5000)
+  if (chunksRef.current.length > 0) {
+    const latestChunks = [...chunksRef.current]
+    chunksRef.current = []
+    // Always prepend first chunk (contains WebM header)
+    const blobParts = firstChunkRef.current
+      ? [firstChunkRef.current, ...latestChunks]
+      : latestChunks
+    if (!firstChunkRef.current && latestChunks.length > 0) {
+      firstChunkRef.current = latestChunks[0]
+    }
+    const blob = new Blob(blobParts, { type: 'audio/webm' })
+    processChunk(blob)
+  }
+}, 5000)
   }
   
 
@@ -487,7 +512,20 @@ const toggleLang = () => {
     if (displayStreamRef.current) { displayStreamRef.current.getTracks().forEach(t => t.stop()); displayStreamRef.current = null }
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null }
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
-    if (chunksRef.current.length > 0) await processChunk(new Blob(chunksRef.current, { type: 'audio/webm' }))
+    if (chunksRef.current.length > 0) {
+  // 1. Grab the current audio chunks
+  const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+  
+  // 2. CRITICAL: Empty the array immediately so fresh audio starts buffering from scratch
+  chunksRef.current = []
+
+  // 3. Process the chunk
+  if (blob.size < 10 * 1024 * 1024) {
+    await processChunk(blob)
+  } else {
+    console.warn('Audio chunk exceeded 10MB limit and was dropped.')
+  }
+}
     setIsLive(false)
     try {
       const { createClient } = await import('@/lib/supabase')
