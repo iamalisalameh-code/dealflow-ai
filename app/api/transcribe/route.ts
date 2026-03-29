@@ -12,10 +12,9 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await audio.arrayBuffer())
 
-    // Build Deepgram URL based on language
     const isArabic = language === 'ar'
     const deepgramUrl = isArabic
-      ? 'https://api.deepgram.com/v1/listen?model=nova-2&language=ar&smart_format=true&punctuate=true&diarize=true&utterances=true&multichannel=true'
+      ? 'https://api.deepgram.com/v1/listen?model=nova-2&language=ar&smart_format=true&punctuate=true&utterances=true'
       : 'https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&utterances=true&multichannel=true'
 
     const response = await fetch(deepgramUrl, {
