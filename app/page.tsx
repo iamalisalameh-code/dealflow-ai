@@ -41,14 +41,14 @@ const translations = {
     recording: 'Recording',
     aiAnalyzing: 'AI Analyzing',
     readyToStart: 'Ready to Start',
-    sessionLive: '🎙 Recording',
-    meetingInProgress: '📺 Meeting in Progress',
+    sessionLive: 'Recording',
+    meetingInProgress: 'Meeting Active',
     newCall: 'New Call',
     selectContactToStart: 'Select a contact to start',
     selectContactBtn: 'Select contact...',
-    endCall: '⏹ End Call',
-    microphone: '🎙 Microphone',
-    googleMeet: '📺 Google Meet',
+    endCall: 'End Call',
+    microphone: 'Microphone',
+    googleMeet: 'Google Meet',
     meetHintTitle: 'Google Meet / Zoom Integration',
     meetHintBody: 'Join your meeting in another tab → click "📺 Google Meet" → select the tab → check "Share tab audio" → click Share',
     meetHintWorks: 'Works with Meet · Zoom · Teams',
@@ -101,8 +101,8 @@ const translations = {
     context: '📋 Context',
     watchOut: '⚠ Watch Out For',
     questionsToAsk: '💬 Questions to Ask',
-    startMic: '🎙 Start with Microphone',
-    startMeet: '📺 Start with Google Meet',
+    startMic: 'Start with Microphone',
+    startMeet: 'Start with Google Meet',
     noContacts: 'No contacts yet',
     close: 'Close ✕',
   },
@@ -113,14 +113,14 @@ const translations = {
     recording: 'جارٍ التسجيل',
     aiAnalyzing: 'الذكاء الاصطناعي يحلل',
     readyToStart: 'جاهز للبدء',
-    sessionLive: '🎙 جارٍ التسجيل',
-    meetingInProgress: '📺 الاجتماع جارٍ',
+    sessionLive: 'جارٍ التسجيل',
+    meetingInProgress: 'الاجتماع جارٍ',
     newCall: 'مكالمة جديدة',
     selectContactToStart: 'اختر جهة اتصال للبدء',
     selectContactBtn: 'اختر جهة اتصال...',
     endCall: '⏹ إنهاء المكالمة',
     microphone: '🎙 الميكروفون',
-    googleMeet: '📺 Google Meet',
+    googleMeet: 'Google Meet',
     meetHintTitle: 'تكامل Google Meet / Zoom',
     meetHintBody: 'انضم للاجتماع في تبويب آخر ← اضغط "📺 Google Meet" ← اختر التبويب ← فعّل "مشاركة صوت التبويب" ← اضغط مشاركة',
     meetHintWorks: 'يعمل مع Meet · Zoom · Teams',
@@ -529,12 +529,19 @@ const toggleLang = () => {
     { color: '#30d158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.2)' },
   ]
 
-  const energyMap: Record<string, { color: string, pct: number, icon: string, desc: string }> = {
-    confident: { color: '#30d158', pct: 90, icon: '🔥', desc: tr.energyConfident },
-    steady: { color: '#0a84ff', pct: 65, icon: '✅', desc: tr.energySteady },
-    low: { color: '#ff9f0a', pct: 35, icon: '⚠️', desc: tr.energyLow },
-    fast: { color: '#ff453a', pct: 80, icon: '⚡', desc: tr.energyFast },
-  }
+  const energyIconMap: Record<string, React.ReactNode> = {
+  confident: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  steady: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  low: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff9f0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  fast: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff453a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+}
+
+const energyMap: Record<string, { color: string, pct: number, desc: string }> = {
+  confident: { color: '#30d158', pct: 90, desc: tr.energyConfident },
+  steady: { color: '#0a84ff', pct: 65, desc: tr.energySteady },
+  low: { color: '#ff9f0a', pct: 35, desc: tr.energyLow },
+  fast: { color: '#ff453a', pct: 80, desc: tr.energyFast },
+}
 
   const coachingLabels = [
     { label: tr.opening, value: insights.coachingBreakdown.opening, color: '#0a84ff' },
@@ -694,15 +701,15 @@ const toggleLang = () => {
                   </div>
                   {isLive ? (
                     <button onClick={endCall} style={{ height: 52, padding: '0 28px', borderRadius: 26, border: '1px solid rgba(255,69,58,0.3)', background: 'rgba(255,59,48,0.15)', color: '#ff3b30', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      {tr.endCall}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c1.12.45 2.3.75 3.53.85a2 2 0 0 1 1.8 1.99V21a2 2 0 0 1-2.18 2C7.67 21.81 2 16.14 2 9a2 2 0 0 1 2-2h3.5a2 2 0 0 1 2 1.8c.1 1.22.4 2.4.85 3.52a2 2 0 0 1-.45 2.11l-1.27 1.27z"/><line x1="23" y1="1" x2="1" y2="23"/></svg>{tr.endCall}
                     </button>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <button onClick={startMicCall} style={{ height: 44, padding: '0 22px', borderRadius: 22, border: '1px solid rgba(48,209,88,0.25)', background: 'rgba(48,209,88,0.12)', color: '#30d158', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        {tr.microphone}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>{tr.microphone}
                       </button>
                       <button onClick={startTabCall} style={{ height: 44, padding: '0 22px', borderRadius: 22, border: '1px solid rgba(10,132,255,0.25)', background: 'rgba(10,132,255,0.12)', color: '#0a84ff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        {tr.googleMeet}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><rect x="2" y="7" width="15" height="10" rx="2"/><path d="M17 9l5-2v10l-5-2"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><rect x="2" y="7" width="15" height="10" rx="2"/><path d="M17 9l5-2v10l-5-2"/></svg>{tr.googleMeet}
                       </button>
                     </div>
                   )}
@@ -739,7 +746,9 @@ const toggleLang = () => {
               {/* Meet hint */}
               {!isLive && (
                 <div style={{ gridColumn: 'span 12', borderRadius: 20, background: 'rgba(10,132,255,0.06)', border: '1px solid rgba(10,132,255,0.15)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ fontSize: 24 }}>📺</div>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(10,132,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="15" height="10" rx="2"/><path d="M17 9l5-2v10l-5-2"/></svg>
+</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#0a84ff', marginBottom: 2 }}>{tr.meetHintTitle}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{tr.meetHintBody}</div>
@@ -863,7 +872,11 @@ const toggleLang = () => {
                     ? <div style={{ fontSize: 13, color: 'var(--text-dim)', fontStyle: 'italic' }}>{tr.listeningSignals}</div>
                     : allBuyingSignals.map((signal, i) => (
                       <div key={i} style={{ padding: '8px 12px', borderRadius: 12, background: signal.active ? 'rgba(48,209,88,0.08)' : 'rgba(255,69,58,0.06)', border: '1px solid ' + (signal.active ? 'rgba(48,209,88,0.2)' : 'rgba(255,69,58,0.15)'), fontSize: 12, color: signal.active ? 'var(--text-primary)' : 'var(--text-tertiary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.5s', textDecoration: signal.active ? 'none' : 'line-through' }}>
-                        <span>{signal.active ? '⚡' : '✗'}</span> {signal.text}
+                        <span>{signal.active ? (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+) : (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+)}</span> {signal.text}
                       </div>
                     ))
                   }
@@ -898,7 +911,9 @@ const toggleLang = () => {
                   return (
                     <>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                        <div style={{ fontSize: 32 }}>{e.icon}</div>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: e.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+  {energyIconMap[insights.energyLevel] || energyIconMap.steady}
+</div>
                         <div>
                           <div style={{ fontSize: 18, fontWeight: 600, color: e.color, textTransform: 'capitalize', marginBottom: 2 }}>{insights.coachingScore < 0 ? 'Yet to start' : insights.energyLevel}</div>
                           <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.desc}</div>
