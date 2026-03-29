@@ -217,7 +217,7 @@ const defaultInsights: Insights = {
 
 export default function Dashboard() {
   const contactBtnRef = useRef<HTMLDivElement>(null)
-  const [heartbeatData, setHeartbeatData] = useState<number[]>([50,55,60,58,62,70,68,75,72,80,78,82,80,86])
+  const [heartbeatData, setHeartbeatData] = useState<number[]>([50,50,50,50,50,50,50,50,50,50,50,50,50,50])
   const [hasMounted, setHasMounted] = useState(false)
   const [agentName, setAgentName] = useState('Agent')
   const [showScrollBtn, setShowScrollBtn] = useState(false)
@@ -609,6 +609,7 @@ const toggleLang = () => {
               { d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', active: false, href: '/history' },
               { d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', active: false, href: '/contacts' },
               { d: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', active: false, href: '/' },
+              { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', active: false, href: '/admin' },
             ].map((item, i) => (
               <div key={i} onClick={() => window.location.href = item.href} style={{ width: 48, height: 48, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: item.active ? 'var(--card-hover)' : 'transparent', color: item.active ? 'var(--text-primary)' : 'var(--text-tertiary)', border: item.active ? '1px solid var(--card-border)' : '1px solid transparent', transition: 'all 0.2s' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.d} /></svg>
@@ -729,8 +730,8 @@ const toggleLang = () => {
                           <stop offset="100%" stopColor={insights.dealHealthScore > 70 ? '#30d158' : insights.dealHealthScore > 40 ? '#ff9f0a' : '#ff453a'} stopOpacity="1" />
                         </linearGradient>
                       </defs>
-                      <polyline points={heartbeatData.map((v, i) => `${i * 12},${64 - (v / 100) * 56}`).join(' ')} fill="none" stroke="url(#hbGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <circle cx={(heartbeatData.length - 1) * 12} cy={64 - (heartbeatData[heartbeatData.length - 1] / 100) * 56} r="3" fill={insights.dealHealthScore > 70 ? '#30d158' : insights.dealHealthScore > 40 ? '#ff9f0a' : '#ff453a'} />
+                      <polyline points={heartbeatData.map((v, i) => `${i * 12},${64 - (v / 100) * 56}`).join(' ')} fill="none" stroke={insights.dealHealthScore < 0 ? 'var(--divider)' : 'url(#hbGrad)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+{insights.dealHealthScore >= 0 && <circle cx={(heartbeatData.length - 1) * 12} cy={64 - (heartbeatData[heartbeatData.length - 1] / 100) * 56} r="3" fill={insights.dealHealthScore > 70 ? '#30d158' : insights.dealHealthScore > 40 ? '#ff9f0a' : '#ff453a'} />}
                     </svg>
                   </div>
                 </div>
