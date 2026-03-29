@@ -402,7 +402,7 @@ export default function SettingsPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
                         {uploadedFiles.map((file, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, background: 'rgba(48,209,88,0.06)', border: '1px solid rgba(48,209,88,0.15)' }}>
-                            <span style={{ fontSize: 20, flexShrink: 0 }}>{file.name.endsWith('.pdf') ? '📄' : '📝'}</span>
+                            <FileIcon size={20} color="#30d158" style={{ flexShrink: 0 }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
                               <div style={{ fontSize: 11, color: '#30d158' }}>✓ {isRTL ? 'جاهز للتعلم' : 'Ready for AI learning'}</div>
