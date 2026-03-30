@@ -3,6 +3,12 @@ import speech from '@google-cloud/speech'
 import path from 'path'
 
 const getClient = () => {
+  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    const credentials = JSON.parse(
+      Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, 'base64').toString()
+    )
+    return new speech.SpeechClient({ credentials })
+  }
   const keyPath = path.join(process.cwd(), 'vertex-key.json')
   return new speech.SpeechClient({ keyFilename: keyPath })
 }
