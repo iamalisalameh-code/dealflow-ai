@@ -334,12 +334,13 @@ export default function LandingPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
             <span className="nav-link" onClick={() => window.location.href = '/how-it-works'}>How it works</span>
-          {['Features', 'Pricing', 'Testimonials', 'FAQ'].map(item => (
-            <span key={item} className="nav-link"
-              onClick={() => document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}>
-              {item}
-            </span>
-          ))}
+          {['Features', 'Testimonials', 'FAQ'].map(item => (
+  <span key={item} className="nav-link"
+    onClick={() => document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}>
+  {item}
+  </span>
+))}
+<span className="nav-link" onClick={() => window.location.href = '/pricing'}>Pricing</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -724,9 +725,9 @@ export default function LandingPage() {
             <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>DealFlow AI</span>
           </div>
           <div style={{ display: 'flex', gap: 32 }}>
-            {['Privacy', 'Terms', 'Contact'].map(item => (
-              <span key={item} style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>{item}</span>
-            ))}
+            {[['Pricing', '/pricing'], ['How it works', '/how-it-works'], ['Privacy', '/privacy'], ['Terms', '/terms']].map(([label, href]) => (
+  <span key={label} onClick={() => window.location.href = href} style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>{label}</span>
+))}
           </div>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>© 2026 DealFlow AI. All rights reserved.</span>
         </div>
