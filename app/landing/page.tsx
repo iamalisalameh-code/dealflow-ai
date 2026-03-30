@@ -333,6 +333,7 @@ export default function LandingPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+            <span className="nav-link" onClick={() => window.location.href = '/how-it-works'}>How it works</span>
           {['Features', 'Pricing', 'Testimonials', 'FAQ'].map(item => (
             <span key={item} className="nav-link"
               onClick={() => document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}>
