@@ -19,9 +19,7 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await audio.arrayBuffer())
     const audioBytes = buffer.toString('base64')
-
     const isArabic = language === 'ar'
-
     const client = getClient()
 
     const recognizeRequest = {
@@ -34,40 +32,45 @@ export async function POST(request: Request) {
         enableAutomaticPunctuation: true,
         enableSpeakerDiarization: !isArabic,
         diarizationSpeakerCount: isArabic ? undefined : 2,
-        model: isArabic ? 'latest_long' : 'latest_long',
+        model: 'latest_long',
         useEnhanced: true,
       },
     }
 
     const [response] = await client.recognize(recognizeRequest as any)
-
     const results = response.results || []
 
-    // Build full transcript
     const fullTranscript = results
       .map(r => r.alternatives?.[0]?.transcript || '')
       .join(' ')
       .trim()
 
-    // Build utterances from speaker diarization words
     const utterances: { speaker: number, text: string, start: number, end: number }[] = []
 
     if (!isArabic && results.length > 0) {
-      const words = results[results.length - 1]?.alternatives?.[0]?.words || []
+      // Use last result which has full diarization
+      const lastResult = results[results.length - 1]
+      const words = lastResult?.alternatives?.[0]?.words || []
+
       let currentSpeaker = -1
       let currentText = ''
       let startTime = 0
       let endTime = 0
 
       for (const word of words) {
-        const speaker = word.speakerTag || 0
+        const speaker = (word.speakerTag ?? 1) - 1 // normalize to 0-based
         const wordText = word.word || ''
         const wordStart = Number(word.startTime?.seconds || 0)
         const wordEnd = Number(word.endTime?.seconds || 0)
 
         if (speaker !== currentSpeaker) {
-          if (currentText) {
-            utterances.push({ speaker: currentSpeaker, text: currentText.trim(), start: startTime, end: endTime })
+          if (currentText.trim()) {
+            utterances.push({
+              speaker: currentSpeaker < 0 ? 0 : currentSpeaker,
+              text: currentText.trim(),
+              start: startTime,
+              end: endTime
+            })
           }
           currentSpeaker = speaker
           currentText = wordText + ' '
@@ -78,21 +81,21 @@ export async function POST(request: Request) {
           endTime = wordEnd
         }
       }
-      if (currentText) {
-        utterances.push({ speaker: currentSpeaker, text: currentText.trim(), start: startTime, end: endTime })
+      if (currentText.trim()) {
+        utterances.push({
+          speaker: currentSpeaker < 0 ? 0 : currentSpeaker,
+          text: currentText.trim(),
+          start: startTime,
+          end: endTime
+        })
       }
     }
 
-    // If no diarization, return simple utterance
     if (utterances.length === 0 && fullTranscript) {
       utterances.push({ speaker: 0, text: fullTranscript, start: 0, end: 0 })
     }
 
-    return NextResponse.json({
-      transcript: fullTranscript,
-      words: [],
-      utterances,
-    })
+    return NextResponse.json({ transcript: fullTranscript, words: [], utterances })
 
   } catch (err: any) {
     console.error('Google Speech error:', err?.message || err)

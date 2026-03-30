@@ -470,7 +470,7 @@ chunksRef.current = []
     const blob = new Blob(blobParts, { type: 'audio/webm' })
     processChunk(blob)
   }
-}, 5000)
+}, 15000)
   }
   
 
