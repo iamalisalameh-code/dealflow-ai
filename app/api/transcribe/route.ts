@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const audio = formData.get('audio') as Blob
     const language = (formData.get('language') as string) || 'en'
+    const mode = (formData.get('mode') as string) || 'mic'
 
     if (!audio) {
       return NextResponse.json({ error: 'No audio provided' }, { status: 400 })
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await audio.arrayBuffer())
     const audioBytes = buffer.toString('base64')
     const isArabic = language === 'ar'
+    const isTab = mode === 'tab'
     const client = getClient()
 
     const recognizeRequest = {
@@ -30,8 +32,10 @@ export async function POST(request: Request) {
         languageCode: isArabic ? 'ar-AE' : 'en-US',
         alternativeLanguageCodes: isArabic ? ['ar-SA', 'ar-EG'] : ['en-GB'],
         enableAutomaticPunctuation: true,
-        enableSpeakerDiarization: !isArabic,
-        diarizationSpeakerCount: isArabic ? undefined : 2,
+        // Only use multichannel + diarization in tab mode
+        audioChannelCount: isTab ? 2 : 1,
+        enableSeparateRecognitionPerChannel: isTab,
+        enableSpeakerDiarization: false, // disabled — unreliable on short chunks
         model: 'latest_long',
         useEnhanced: true,
       },
@@ -40,60 +44,28 @@ export async function POST(request: Request) {
     const [response] = await client.recognize(recognizeRequest as any)
     const results = response.results || []
 
-    const fullTranscript = results
-      .map(r => r.alternatives?.[0]?.transcript || '')
-      .join(' ')
-      .trim()
-
     const utterances: { speaker: number, text: string, start: number, end: number }[] = []
 
-    if (!isArabic && results.length > 0) {
-      // Use last result which has full diarization
-      const lastResult = results[results.length - 1]
-      const words = lastResult?.alternatives?.[0]?.words || []
-
-      let currentSpeaker = -1
-      let currentText = ''
-      let startTime = 0
-      let endTime = 0
-
-      for (const word of words) {
-        const speaker = (word.speakerTag ?? 1) - 1 // normalize to 0-based
-        const wordText = word.word || ''
-        const wordStart = Number(word.startTime?.seconds || 0)
-        const wordEnd = Number(word.endTime?.seconds || 0)
-
-        if (speaker !== currentSpeaker) {
-          if (currentText.trim()) {
-            utterances.push({
-              speaker: currentSpeaker < 0 ? 0 : currentSpeaker,
-              text: currentText.trim(),
-              start: startTime,
-              end: endTime
-            })
-          }
-          currentSpeaker = speaker
-          currentText = wordText + ' '
-          startTime = wordStart
-          endTime = wordEnd
-        } else {
-          currentText += wordText + ' '
-          endTime = wordEnd
-        }
+    if (isTab) {
+      // Tab mode: each result has a channelTag (0 = agent mic, 1 = client tab)
+      for (const result of results) {
+        const text = result.alternatives?.[0]?.transcript?.trim()
+        if (!text) continue
+        const channel = (result as any).channelTag ?? 0
+        utterances.push({ speaker: channel, text, start: 0, end: 0 })
       }
-      if (currentText.trim()) {
-        utterances.push({
-          speaker: currentSpeaker < 0 ? 0 : currentSpeaker,
-          text: currentText.trim(),
-          start: startTime,
-          end: endTime
-        })
+    } else {
+      // Mic mode: single speaker, just return transcript
+      const fullTranscript = results
+        .map(r => r.alternatives?.[0]?.transcript || '')
+        .join(' ')
+        .trim()
+      if (fullTranscript) {
+        utterances.push({ speaker: 0, text: fullTranscript, start: 0, end: 0 })
       }
     }
 
-    if (utterances.length === 0 && fullTranscript) {
-      utterances.push({ speaker: 0, text: fullTranscript, start: 0, end: 0 })
-    }
+    const fullTranscript = utterances.map(u => u.text).join(' ').trim()
 
     return NextResponse.json({ transcript: fullTranscript, words: [], utterances })
 

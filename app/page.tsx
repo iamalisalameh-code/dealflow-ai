@@ -417,6 +417,7 @@ const toggleLang = () => {
     const formData = new FormData()
     formData.append('audio', blob, 'chunk.webm')
     formData.append('language', lang)
+      formData.append('mode', callMode)
     const res = await fetch('/api/transcribe', { method: 'POST', body: formData })
     const data = await res.json()
     if (data.transcript) {
@@ -470,7 +471,7 @@ chunksRef.current = []
     const blob = new Blob(blobParts, { type: 'audio/webm' })
     processChunk(blob)
   }
-}, 15000)
+}, 5000)
   }
   
 
