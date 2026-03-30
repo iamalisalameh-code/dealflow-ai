@@ -26,12 +26,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow these paths without auth
-  const publicPaths = ['/login', '/auth/callback', '/join', '/api', '/landing', '/how-it-works']
+  const publicPaths = ['/login', '/auth/callback', '/join', '/api', '/landing', '/how-it-works', '/pricing']
   const isPublic = publicPaths.some(p => pathname.startsWith(p))
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
-    url.pathname = '/landing', '/how-it-works'
+    url.pathname = '/landing', '/how-it-works', '/pricing'
     return NextResponse.redirect(url)
   }
 
