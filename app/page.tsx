@@ -237,6 +237,7 @@ export default function Dashboard() {
   const [notes, setNotes] = useState('')
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const firstChunkRef = useRef<Blob | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const fullTranscriptRef = useRef<string>('')
@@ -436,7 +437,6 @@ const toggleLang = () => {
 }
 
   const startRecording = (stream: MediaStream, mode: 'mic' | 'tab') => {
-    const firstChunkRef = useRef<Blob | null>(null)
     const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
     mediaRecorderRef.current = mediaRecorder
     firstChunkRef.current = null
@@ -479,7 +479,7 @@ chunksRef.current = []
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       startRecording(stream, 'mic')
-    } catch { setMicError(tr.microphone) }
+    } catch (err: any) { setMicError(err.name === 'NotAllowedError' ? 'Microphone access denied.' : err.message || 'Microphone error') }
   }
 
   const startTabCall = async () => {
