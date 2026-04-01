@@ -117,7 +117,7 @@ export default function FeaturesClient() {
         <section style={{ display: 'flex', maxWidth: 1200, margin: '0 auto', padding: '40px 48px 120px', gap: 64, position: 'relative' }}>
           
           {/* Sticky Sidebar */}
-          <div style={{ width: 240, flexShrink: 0, display: 'none', '@media(min-width: 900px)': { display: 'block' } } as any}>
+          <div style={{ width: 240, flexShrink: 0, display: 'block' }}>
             <div style={{ position: 'sticky', top: 120, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#aeaeb2', letterSpacing: isAr ? '0' : '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
                 {isAr ? 'انتقل إلى الميزة' : 'Jump to feature'}
