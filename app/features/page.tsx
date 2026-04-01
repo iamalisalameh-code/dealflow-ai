@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import FeaturesClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'Sales Features | DealFlow AI',
-  description: 'Arabic transcription, buying signal detection, and automated CRM logging.',
-}
-
-export default function Page() {
-  return <FeaturesClient />
+import MobileFeatures from '@/components/marketing/MobileFeatures'
+export default async function FeaturesPage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileFeatures /> : <FeaturesClient />
 }

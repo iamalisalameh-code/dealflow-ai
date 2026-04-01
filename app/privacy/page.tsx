@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import PrivacyClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'Privacy Policy | DealFlow AI',
-  description: 'Learn about our zero-training policy for AI models.',
-}
-
-export default function Page() {
-  return <PrivacyClient />
+import MobilePrivacy from '@/components/marketing/MobilePrivacy'
+export default async function PrivacyPage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobilePrivacy /> : <PrivacyClient />
 }

@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import TermsClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'Terms of Service | DealFlow AI',
-  description: 'Legal foundation for the DealFlow AI platform.',
-}
-
-export default function Page() {
-  return <TermsClient />
+import MobileTerms from '@/components/marketing/MobileTerms'
+export default async function TermsPage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileTerms /> : <TermsClient />
 }
