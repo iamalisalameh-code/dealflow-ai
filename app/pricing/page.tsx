@@ -1,11 +1,11 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import PricingClient from './ClientPage'
+import MobilePricing from '@/components/marketing/MobilePricing'
 
-export const metadata: Metadata = {
-  title: 'Simple Pricing | DealFlow AI',
-  description: 'Start your 14-day free trial. Flexible plans for UAE sales teams.',
-}
-
-export default function Page() {
+export default async function PricingPage() {
+  const headersList = await headers()
+  const ua = headersList.get('user-agent') || ''
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(ua)
+  if (isMobile) return <MobilePricing />
   return <PricingClient />
 }

@@ -1,11 +1,11 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import HowItWorksClient from './ClientPage'
+import MobileHowItWorks from '@/components/marketing/MobileHowItWorks'
 
-export const metadata: Metadata = {
-  title: 'How It Works | DealFlow AI',
-  description: 'Integrate AI into your Zoom or Google Meet calls in seconds.',
-}
-
-export default function Page() {
+export default async function HowItWorksPage() {
+  const headersList = await headers()
+  const ua = headersList.get('user-agent') || ''
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(ua)
+  if (isMobile) return <MobileHowItWorks />
   return <HowItWorksClient />
 }
