@@ -6,45 +6,84 @@ import { useState, useEffect } from 'react'
 export default function InsuranceClient() {
   const [scrolled, setScrolled] = useState(false)
 
+  // Step 1 — Add language detection at the top of the component
+  const [lang, setLang] = useState<'en' | 'ar'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('marketing_lang') as 'en' | 'ar') || 'en'
+    }
+    return 'en'
+  })
+
+  useEffect(() => {
+    const handleStorage = () => {
+      const saved = localStorage.getItem('marketing_lang') as 'en' | 'ar'
+      if (saved) setLang(saved)
+    }
+    handleStorage()
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  const isAr = lang === 'ar'
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Step 2 — Wrap every text string (Benefits Data)
   const benefits = [
     {
-      title: 'Bulletproof Compliance',
-      desc: 'Automatically flag if mandatory compliance scripts (e.g., DHA regulations, policy exclusions) were missed during the call. Keep a perfect, searchable transcript of every client interaction.',
+      title: isAr ? 'امتثال لا يقبل الشك' : 'Bulletproof Compliance',
+      desc: isAr 
+        ? 'قم بتحديد نصوص الامتثال الإلزامية تلقائياً (مثل لوائح هيئة الصحة بدبي، استثناءات البوليسة) إذا تم نسيانها أثناء المكالمة. احتفظ بنسخة مثالية وقابلة للبحث لكل تفاعل مع العميل.' 
+        : 'Automatically flag if mandatory compliance scripts (e.g., DHA regulations, policy exclusions) were missed during the call. Keep a perfect, searchable transcript of every client interaction.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0071e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
       )
     },
     {
-      title: 'Capture Exact Medical & Asset Details',
-      desc: 'Never ask a client to repeat their pre-existing conditions, vehicle VIN, or exact coverage requirements. DealFlow extracts these entities automatically into your post-call notes.',
+      title: isAr ? 'التقاط تفاصيل طبية وأصول دقيقة' : 'Capture Exact Medical & Asset Details',
+      desc: isAr 
+        ? 'لا تطلب من العميل تكرار حالاته المرضية السابقة أو رقم تعريف السيارة أو متطلبات التغطية الدقيقة. يقوم DealFlow باستخراج هذه التفاصيل تلقائياً في ملاحظات ما بعد المكالمة.' 
+        : 'Never ask a client to repeat their pre-existing conditions, vehicle VIN, or exact coverage requirements. DealFlow extracts these entities automatically into your post-call notes.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       )
     },
     {
-      title: 'Expats & Locals Covered',
-      desc: 'Selling life insurance to a mix of Arabic and English speakers? DealFlow seamlessly detects and transcribes both languages, including heavy regional dialects.',
+      title: isAr ? 'تغطية للمواطنين والوافدين' : 'Expats & Locals Covered',
+      desc: isAr 
+        ? 'هل تبيع تأميناً على الحياة لمزيج من المتحدثين بالعربية والإنجليزية؟ يقوم DealFlow باكتشاف ونسخ اللغتين بسلاسة، بما في ذلك اللهجات الإقليمية القوية.' 
+        : 'Selling life insurance to a mix of Arabic and English speakers? DealFlow seamlessly detects and transcribes both languages, including heavy regional dialects.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bf5af2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       )
     }
   ]
 
+  const extractionItems = [
+    { label: isAr ? 'نوع البوليسة' : 'Policy Type', value: isAr ? 'تأمين مؤقت على الحياة (20 سنة)' : 'Term Life (20 Years)' },
+    { label: isAr ? 'التغطية المستهدفة' : 'Coverage Target', value: isAr ? '1,000,000 دولار أمريكي' : '$1,000,000 USD' },
+    { label: isAr ? 'المُعالين' : 'Dependents', value: isAr ? 'الزوجة، طفلان' : 'Spouse, 2 Children' },
+    { label: isAr ? 'التاريخ الطبي' : 'Medical History', value: isAr ? 'ارتفاع ضغط الدم (معالج)، لا تدخين' : 'Hypertension (Medicated), No Smoking' },
+    { label: isAr ? 'المزود الحالي' : 'Current Provider', value: isAr ? 'زيورخ الدولية' : 'Zurich International' }
+  ]
+
   return (
-    <>
+    // Step 3 — Add direction and font to main wrapper
+    <div style={{ direction: isAr ? 'rtl' : 'ltr', fontFamily: isAr ? "'Noto Sans Arabic', sans-serif" : "'DM Sans', sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
+        /* Step 4 — Add Noto Sans Arabic to the font import */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #fff; color: #1d1d1f; font-family: 'DM Sans', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        body { background: #fff; color: #1d1d1f; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
         
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        html[dir="rtl"] .serif { font-family: 'Noto Sans Arabic', sans-serif; font-weight: 700; }
+        
         button { cursor: pointer; font-family: inherit; }
         
         @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
@@ -54,9 +93,6 @@ export default function InsuranceClient() {
         
         .desktop-nav { display: flex; align-items: center; gap: 32px; }
         @media (max-width: 768px) { .desktop-nav { display: none !important; } }
-        
-        
-        
         
         .benefit-card { padding: 32px; border-radius: 24px; background: #f5f5f7; border: 1px solid rgba(0,0,0,0.04); transition: transform 0.3s; }
         .benefit-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
@@ -75,20 +111,24 @@ export default function InsuranceClient() {
         <div className="mesh" style={{ top: '0%', left: '10%', width: '35%', height: '60%', background: '#0071e3', opacity: 0.05 }} />
         <div className="mesh" style={{ top: '10%', right: '10%', width: '30%', height: '50%', background: '#34c759', opacity: 0.04 }} />
         
-        <div className="fade-up" style={{ fontSize: 13, fontWeight: 700, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 20 }}>Insurance Brokers & Agents</div>
-        <h1 className="fade-up-1 serif" style={{ fontSize: 'clamp(44px, 6vw, 72px)', fontWeight: 400, letterSpacing: '-2px', lineHeight: 1.05, marginBottom: 24, maxWidth: 900, margin: '0 auto 24px' }}>
-          Close more policies. <br /><span style={{ fontStyle: 'italic', color: '#0071e3' }}>Stay 100% compliant.</span>
+        <div className="fade-up" style={{ fontSize: 13, fontWeight: 700, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 20 }}>
+          {isAr ? 'وسطاء ووكلاء التأمين' : 'Insurance Brokers & Agents'}
+        </div>
+        <h1 className="fade-up-1 serif" style={{ fontSize: 'clamp(32px, 6vw, 72px)', fontWeight: 400, letterSpacing: '-2px', lineHeight: 1.05, marginBottom: 24, maxWidth: 900, margin: '0 auto 24px' }}>
+          {isAr ? 'أغلق المزيد من البوالص.' : 'Close more policies.'} <br /><span style={{ fontStyle: 'italic', color: '#0071e3' }}>{isAr ? 'وابقَ ممتثلاً بنسبة 100٪.' : 'Stay 100% compliant.'}</span>
         </h1>
         <p className="fade-up-2" style={{ fontSize: 19, color: '#6e6e73', maxWidth: 640, margin: '0 auto 40px', lineHeight: 1.6 }}>
-          DealFlow AI listens to your client consultations, extracts complex health and coverage requirements, ensures mandatory disclosures are read, and generates ready-to-send policy quotes.
+          {isAr 
+            ? 'DealFlow AI يستمع لاستشارات عملائك، ويستخرج المتطلبات الصحية والتغطيات المعقدة، ويضمن قراءة الإفصاحات الإلزامية، وينشئ عروض أسعار جاهزة للإرسال.' 
+            : 'DealFlow AI listens to your client consultations, extracts complex health and coverage requirements, ensures mandatory disclosures are read, and generates ready-to-send policy quotes.'}
         </p>
         
         <div className="fade-up-2" style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
           <button onClick={() => window.location.href = '/login'} style={{ height: 52, padding: '0 32px', borderRadius: 26, border: 'none', background: '#1d1d1f', color: '#fff', fontSize: 16, fontWeight: 600 }}>
-            Start Free Trial
+            {isAr ? 'ابدأ التجربة المجانية' : 'Start Free Trial'}
           </button>
           <button onClick={() => window.location.href = '/demo'} style={{ height: 52, padding: '0 32px', borderRadius: 26, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: '#1d1d1f', fontSize: 16, fontWeight: 600 }}>
-            Book a Demo
+            {isAr ? 'احجز عرضاً تجريبياً' : 'Book a Demo'}
           </button>
         </div>
       </section>
@@ -114,33 +154,33 @@ export default function InsuranceClient() {
           
           <div style={{ background: '#1d1d1f', borderRadius: 24, padding: 32, boxShadow: '0 30px 60px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 16, marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>AUTO-EXTRACTED DATA</div>
-              <div style={{ padding: '4px 12px', background: 'rgba(52,199,89,0.15)', color: '#34c759', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>SYNCED TO CRM</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>{isAr ? 'بيانات مستخرجة تلقائياً' : 'AUTO-EXTRACTED DATA'}</div>
+              <div style={{ padding: '4px 12px', background: 'rgba(52,199,89,0.15)', color: '#34c759', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>{isAr ? 'متزامن مع CRM' : 'SYNCED TO CRM'}</div>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                { label: 'Policy Type', value: 'Term Life (20 Years)' },
-                { label: 'Coverage Target', value: '$1,000,000 USD' },
-                { label: 'Dependents', value: 'Spouse, 2 Children' },
-                { label: 'Medical History', value: 'Hypertension (Medicated), No Smoking' },
-                { label: 'Current Provider', value: 'Zurich International' }
-              ].map((item, i) => (
+              {extractionItems.map((item, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none', paddingBottom: i < 4 ? 16 : 0 }}>
                   <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>{item.label}</span>
-                  <span style={{ fontSize: 14, color: '#fff', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>{item.value}</span>
+                  <span style={{ fontSize: 14, color: '#fff', fontWeight: 500, textAlign: isAr ? 'left' : 'right', maxWidth: '60%' }}>{item.value}</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div>
-            <h2 className="serif" style={{ fontSize: 40, letterSpacing: '-1px', marginBottom: 20 }}>Never miss a critical detail again</h2>
+            <h2 className="serif" style={{ fontSize: 40, letterSpacing: '-1px', marginBottom: 20 }}>{isAr ? 'لا تفوت تفاصيل دقيقة مرة أخرى' : 'Never miss a critical detail again'}</h2>
             <p style={{ fontSize: 17, color: '#6e6e73', lineHeight: 1.6, marginBottom: 24 }}>
-              Insurance quotes rely on perfect accuracy. DealFlow AI automatically identifies and categorizes the client's medical history, asset details, budget, and coverage needs during your conversation, formatting them perfectly for your CRM or quoting software.
+              {isAr 
+                ? 'تعتمد عروض أسعار التأمين على الدقة المثالية. يقوم DealFlow AI تلقائياً بتحديد وتصنيف التاريخ الطبي للعميل، وتفاصيل الأصول، والميزانية، واحتياجات التغطية أثناء محادثتك، وتنسيقها بشكل مثالي لبرنامج CRM الخاص بك.' 
+                : 'Insurance quotes rely on perfect accuracy. DealFlow AI automatically identifies and categorizes the client\'s medical history, asset details, budget, and coverage needs during your conversation, formatting them perfectly for your CRM or quoting software.'}
             </p>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Works for Life, Health, Auto, and Property', 'Reduces post-call admin by 80%', 'Identifies upselling opportunities for add-ons'].map((item, i) => (
+              {[
+                isAr ? 'يعمل للتأمين على الحياة، الصحة، السيارات، والعقارات' : 'Works for Life, Health, Auto, and Property',
+                isAr ? 'يقلل المهام الإدارية بعد المكالمة بنسبة 80٪' : 'Reduces post-call admin by 80%',
+                isAr ? 'يحدد فرص البيع الإضافي للميزات الملحقة' : 'Identifies upselling opportunities for add-ons'
+              ].map((item, i) => (
                 <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 15, color: '#1d1d1f', fontWeight: 500 }}>
                   <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(0,113,227,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0071e3' }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -160,14 +200,16 @@ export default function InsuranceClient() {
           <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 24 }}>
             {[1,2,3,4,5].map(star => <svg key={star} width="20" height="20" viewBox="0 0 24 24" fill="#ff9f0a" stroke="#ff9f0a"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}
           </div>
-          <h3 className="serif" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 400, lineHeight: 1.4, marginBottom: 32 }}>
-            "In insurance sales, compliance and accurate notes are everything. DealFlow AI guarantees I never miss asking a mandatory health question, and instantly drafts the policy summary for my clients right after we hang up."
+          <h3 className="serif" style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 400, lineHeight: 1.4, marginBottom: 32 }}>
+            {isAr 
+              ? '"في مبيعات التأمين، الامتثال والملاحظات الدقيقة هي كل شيء. DealFlow AI يضمن أنني لن أنسى أبداً طرح سؤال صحي إلزامي، ويقوم فوراً بصياغة ملخص البوليسة لعملائي بعد انتهاء المكالمة."' 
+              : '"In insurance sales, compliance and accurate notes are everything. DealFlow AI guarantees I never miss asking a mandatory health question, and instantly drafts the policy summary for my clients right after we hang up."'}
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#34c759', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700 }}>MA</div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: 16, fontWeight: 600 }}>Majid Ali</div>
-              <div style={{ fontSize: 14, color: '#6e6e73' }}>Senior Broker, UAE Life & Health</div>
+            <div style={{ textAlign: isAr ? 'right' : 'left' }}>
+              <div style={{ fontSize: 16, fontWeight: 600 }}>{isAr ? 'ماجد علي' : 'Majid Ali'}</div>
+              <div style={{ fontSize: 14, color: '#6e6e73' }}>{isAr ? 'وسيط أول، حياة وصحة الإمارات' : 'Senior Broker, UAE Life & Health'}</div>
             </div>
           </div>
         </div>
@@ -178,20 +220,22 @@ export default function InsuranceClient() {
         <div className="mesh" style={{ top: '-30%', left: '-10%', width: '50%', height: '80%', background: '#0071e3', opacity: 0.15 }} />
         <div className="mesh" style={{ bottom: '-30%', right: '-10%', width: '40%', height: '70%', background: '#bf5af2', opacity: 0.12 }} />
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          <h2 className="serif" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 400, letterSpacing: '-2px', lineHeight: 1.05, color: '#fff', marginBottom: 20 }}>
-            Protect your clients. <br /><span style={{ fontStyle: 'italic', color: '#0071e3' }}>Protect your time.</span>
+          <h2 className="serif" style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 400, letterSpacing: '-2px', lineHeight: 1.05, color: '#fff', marginBottom: 20 }}>
+            {isAr ? 'احمِ عملائك.' : 'Protect your clients.'} <br /><span style={{ fontStyle: 'italic', color: '#0071e3' }}>{isAr ? 'واحمِ وقتك.' : 'Protect your time.'}</span>
           </h2>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)', marginBottom: 40, lineHeight: 1.6 }}>
-            Start your 14-day free trial today. See how AI can streamline your insurance brokerage.
+            {isAr 
+              ? 'ابدأ تجربتك المجانية لمدة 14 يوماً اليوم. شاهد كيف يمكن للذكاء الاصطناعي تبسيط وساطة التأمين الخاصة بك.' 
+              : 'Start your 14-day free trial today. See how AI can streamline your insurance brokerage.'}
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => window.location.href = '/login'}
               style={{ height: 52, padding: '0 32px', borderRadius: 26, border: 'none', background: '#fff', color: '#1d1d1f', fontSize: 16, fontWeight: 600 }}>
-              Start Free Trial →
+              {isAr ? 'ابدأ التجربة المجانية ←' : 'Start Free Trial →'}
             </button>
             <button onClick={() => window.location.href = '/demo'}
               style={{ height: 52, padding: '0 32px', borderRadius: 26, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', fontSize: 16, fontWeight: 500 }}>
-              Book a Demo
+              {isAr ? 'احجز عرضاً تجريبياً' : 'Book a Demo'}
             </button>
           </div>
         </div>
@@ -199,6 +243,6 @@ export default function InsuranceClient() {
 
       {/* FOOTER */}
       <MarketingFooter />
-    </>
+    </div>
   )
 }

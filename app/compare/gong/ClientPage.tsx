@@ -6,20 +6,41 @@ import { useState, useEffect } from 'react'
 export default function GongClient() {
   const [scrolled, setScrolled] = useState(false)
 
+  // Step 1: Add language detection
+  const [lang, setLang] = useState<'en' | 'ar'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('marketing_lang') as 'en' | 'ar') || 'en'
+    }
+    return 'en'
+  })
+
+  useEffect(() => {
+    const handleStorage = () => {
+      const saved = localStorage.getItem('marketing_lang') as 'en' | 'ar'
+      if (saved) setLang(saved)
+    }
+    handleStorage()
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  const isAr = lang === 'ar'
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Step 2: Wrap comparisonData with translations
   const comparisonData = [
-    { feature: 'Arabic Dialect Support (Khaleeji, Egyptian)', dealflow: true, gong: false },
-    { feature: 'Real-time AI Deal Coaching', dealflow: true, gong: true },
-    { feature: 'WhatsApp Follow-up Generator', dealflow: true, gong: false },
-    { feature: 'Transparent, No-Minimum Pricing', dealflow: true, gong: false },
-    { feature: 'Data Hosted Locally (MENA options)', dealflow: true, gong: false },
-    { feature: 'Enterprise CRM Integrations', dealflow: true, gong: true },
-    { feature: 'Free 14-Day Trial', dealflow: true, gong: false },
+    { feature: isAr ? 'دعم اللهجات العربية (الخليجية، المصرية)' : 'Arabic Dialect Support (Khaleeji, Egyptian)', dealflow: true, gong: false },
+    { feature: isAr ? 'تدريب مباشر على الصفقات بالذكاء الاصطناعي' : 'Real-time AI Deal Coaching', dealflow: true, gong: true },
+    { feature: isAr ? 'منشئ رسائل متابعة واتساب' : 'WhatsApp Follow-up Generator', dealflow: true, gong: false },
+    { feature: isAr ? 'تسعير شفاف، بدون حد أدنى' : 'Transparent, No-Minimum Pricing', dealflow: true, gong: false },
+    { feature: isAr ? 'استضافة البيانات محلياً (خيارات الشرق الأوسط)' : 'Data Hosted Locally (MENA options)', dealflow: true, gong: false },
+    { feature: isAr ? 'تكامل مع أنظمة إدارة علاقات العملاء للمؤسسات' : 'Enterprise CRM Integrations', dealflow: true, gong: true },
+    { feature: isAr ? 'تجربة مجانية لمدة 14 يوماً' : 'Free 14-Day Trial', dealflow: true, gong: false },
   ]
 
   const CheckIcon = () => (
@@ -35,14 +56,18 @@ export default function GongClient() {
   )
 
   return (
-    <>
+    // Step 3: Add direction and font to main wrapper
+    <div style={{ direction: isAr ? 'rtl' : 'ltr', fontFamily: isAr ? "'Noto Sans Arabic', sans-serif" : "'DM Sans', sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
+        /* Step 4: Add Noto Sans Arabic to font import */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #fff; color: #1d1d1f; font-family: 'DM Sans', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        body { background: #fff; color: #1d1d1f; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
         
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        html[dir="rtl"] .serif { font-family: inherit; } /* Prevent serif override in Arabic */
+        
         button { cursor: pointer; font-family: inherit; }
         
         @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
@@ -52,9 +77,6 @@ export default function GongClient() {
         
         .desktop-nav { display: flex; align-items: center; gap: 32px; }
         @media (max-width: 768px) { .desktop-nav { display: none !important; } }
-        
-        
-        
         
         .advantage-card { background: #f5f5f7; border-radius: 24px; padding: 40px; border: 1px solid rgba(0,0,0,0.04); transition: transform 0.3s; }
         .advantage-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
@@ -70,17 +92,22 @@ export default function GongClient() {
         <div className="mesh" style={{ top: '0%', left: '15%', width: '35%', height: '60%', background: '#0071e3', opacity: 0.04 }} />
         <div className="mesh" style={{ top: '10%', right: '15%', width: '30%', height: '50%', background: '#bf5af2', opacity: 0.04 }} />
         
-        <div className="fade-up" style={{ fontSize: 13, fontWeight: 700, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 20 }}>Compare</div>
+        <div className="fade-up" style={{ fontSize: 13, fontWeight: 700, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 20 }}>
+          {isAr ? 'مقارنة' : 'Compare'}
+        </div>
         <h1 className="fade-up-1 serif" style={{ fontSize: 'clamp(40px, 6vw, 64px)', fontWeight: 400, letterSpacing: '-2px', lineHeight: 1.05, marginBottom: 24 }}>
-          DealFlow AI vs Gong:<br /><span style={{ fontStyle: 'italic', color: '#0071e3' }}>Which is right for you?</span>
+          {isAr ? 'DealFlow AI مقابل Gong:' : 'DealFlow AI vs Gong:'}<br />
+          <span style={{ fontStyle: 'italic', color: '#0071e3' }}>{isAr ? 'أيهما الأنسب لك؟' : 'Which is right for you?'}</span>
         </h1>
         <p className="fade-up-2" style={{ fontSize: 18, color: '#6e6e73', maxWidth: 640, margin: '0 auto 40px', lineHeight: 1.6 }}>
-          Gong is a fantastic tool for large US enterprises. But if your sales team operates in the MENA region, speaks Arabic, and wants a tool that works out-of-the-box without massive annual contracts, DealFlow AI is your clear choice.
+          {isAr 
+            ? 'يُعد Gong أداة رائعة للشركات الأمريكية الكبرى. ولكن إذا كان فريق المبيعات لديك يعمل في منطقة الشرق الأوسط، ويتحدث العربية، ويريد أداة تعمل فوراً بدون عقود سنوية ضخمة، فإن DealFlow AI هو خيارك الواضح.' 
+            : 'Gong is a fantastic tool for large US enterprises. But if your sales team operates in the MENA region, speaks Arabic, and wants a tool that works out-of-the-box without massive annual contracts, DealFlow AI is your clear choice.'}
         </p>
         
         <div className="fade-up-2" style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
           <button onClick={() => window.location.href = '/login'} style={{ height: 52, padding: '0 32px', borderRadius: 26, border: 'none', background: '#0071e3', color: '#fff', fontSize: 16, fontWeight: 600 }}>
-            Try DealFlow Free
+            {isAr ? 'جرب DealFlow مجاناً' : 'Try DealFlow Free'}
           </button>
         </div>
       </section>
@@ -92,7 +119,9 @@ export default function GongClient() {
             
             {/* Table Header */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', background: '#f5f5f7', padding: '24px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#6e6e73', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {isAr ? 'الميزة' : 'Feature'}
+              </div>
               <div style={{ fontSize: 20, fontWeight: 700, color: '#0071e3', textAlign: 'center' }}>DealFlow AI</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f', textAlign: 'center' }}>Gong</div>
             </div>
@@ -113,7 +142,9 @@ export default function GongClient() {
       <section style={{ padding: '100px 48px', background: '#fff' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <h2 className="serif" style={{ fontSize: 'clamp(32px, 5vw, 48px)', letterSpacing: '-1px' }}>Why teams are switching to DealFlow</h2>
+            <h2 className="serif" style={{ fontSize: 'clamp(32px, 5vw, 48px)', letterSpacing: '-1px' }}>
+              {isAr ? 'لماذا تنتقل الفرق إلى DealFlow' : 'Why teams are switching to DealFlow'}
+            </h2>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
@@ -123,9 +154,13 @@ export default function GongClient() {
               <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(0,113,227,0.1)', color: '#0071e3', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
               </div>
-              <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>Unmatched Arabic Support</h3>
+              <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>
+                {isAr ? 'دعم لا مثيل له للغة العربية' : 'Unmatched Arabic Support'}
+              </h3>
               <p style={{ fontSize: 16, color: '#6e6e73', lineHeight: 1.6 }}>
-                Gong was built for English first. DealFlow AI was built to handle the complex reality of MENA sales calls: switching between English, Gulf Arabic, and Egyptian dialects in the same sentence. If your buyers speak Arabic, DealFlow is the only tool that truly understands them.
+                {isAr 
+                  ? 'تم بناء Gong للغة الإنجليزية أولاً. بينما تم بناء DealFlow AI للتعامل مع الواقع المعقد لمكالمات المبيعات في المنطقة: التبديل بين الإنجليزية واللهجة الخليجية والمصرية في نفس الجملة. إذا كان المشترون يتحدثون العربية، فإن DealFlow هي الأداة الوحيدة التي تفهمهم حقاً.' 
+                  : 'Gong was built for English first. DealFlow AI was built to handle the complex reality of MENA sales calls: switching between English, Gulf Arabic, and Egyptian dialects in the same sentence. If your buyers speak Arabic, DealFlow is the only tool that truly understands them.'}
               </p>
             </div>
 
@@ -134,9 +169,13 @@ export default function GongClient() {
               <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(52,199,89,0.1)', color: '#34c759', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
-              <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>Fair, Transparent Pricing</h3>
+              <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>
+                {isAr ? 'تسعير عادل وشفاف' : 'Fair, Transparent Pricing'}
+              </h3>
               <p style={{ fontSize: 16, color: '#6e6e73', lineHeight: 1.6 }}>
-                Gong hides their pricing, requires large minimum seat counts, and locks you into massive annual contracts. DealFlow AI offers transparent, pay-as-you-go monthly pricing starting at just $49/mo, with zero hidden platform fees.
+                {isAr 
+                  ? 'يخفي Gong أسعاره، ويتطلب حداً أدنى كبيراً لعدد المستخدمين، ويقيدك بعقود سنوية ضخمة. يقدم DealFlow AI تسعيراً شهرياً شفافاً بنظام الدفع الفوري يبدأ من 49 دولاراً فقط شهرياً، مع عدم وجود رسوم مخفية للمنصة.' 
+                  : 'Gong hides their pricing, requires large minimum seat counts, and locks you into massive annual contracts. DealFlow AI offers transparent, pay-as-you-go monthly pricing starting at just $49/mo, with zero hidden platform fees.'}
               </p>
             </div>
 
@@ -145,9 +184,13 @@ export default function GongClient() {
               <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(191,90,242,0.1)', color: '#bf5af2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
-              <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>Built for MENA Workflows</h3>
+              <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>
+                {isAr ? 'مصمم لسير العمل في المنطقة' : 'Built for MENA Workflows'}
+              </h3>
               <p style={{ fontSize: 16, color: '#6e6e73', lineHeight: 1.6 }}>
-                In the Middle East, business happens on WhatsApp. DealFlow auto-generates WhatsApp follow-up summaries instantly after your calls, alongside traditional emails. We integrate with the tools you actually use to close deals locally.
+                {isAr 
+                  ? 'في الشرق الأوسط، تتم الأعمال عبر واتساب. يقوم DealFlow تلقائياً بإنشاء ملخصات متابعة لواتساب فوراً بعد مكالماتك، إلى جانب رسائل البريد الإلكتروني التقليدية. نحن نتكامل مع الأدوات التي تستخدمها فعلياً لإغلاق الصفقات محلياً.' 
+                  : 'In the Middle East, business happens on WhatsApp. DealFlow auto-generates WhatsApp follow-up summaries instantly after your calls, alongside traditional emails. We integrate with the tools you actually use to close deals locally.'}
               </p>
             </div>
 
@@ -158,15 +201,23 @@ export default function GongClient() {
       {/* MIGRATION */}
       <section style={{ padding: '80px 48px', background: '#f5f5f7' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <h2 className="serif" style={{ fontSize: 36, letterSpacing: '-1px', marginBottom: 20 }}>Easy to migrate. Easier to use.</h2>
+          <h2 className="serif" style={{ fontSize: 36, letterSpacing: '-1px', marginBottom: 20 }}>
+            {isAr ? 'سهولة في الانتقال. وأسهل في الاستخدام.' : 'Easy to migrate. Easier to use.'}
+          </h2>
           <p style={{ fontSize: 18, color: '#6e6e73', lineHeight: 1.6, marginBottom: 40 }}>
-            No complex onboarding or weeks of implementation. You can deploy DealFlow AI to your entire sales team today. Connect Google Meet, Zoom, and your CRM in under 5 minutes.
+            {isAr 
+              ? 'لا يوجد إعداد معقد أو أسابيع من التنفيذ. يمكنك نشر DealFlow AI لفريق المبيعات بأكمله اليوم. قم بتوصيل Google Meet و Zoom ونظام CRM الخاص بك في أقل من 5 دقائق.' 
+              : 'No complex onboarding or weeks of implementation. You can deploy DealFlow AI to your entire sales team today. Connect Google Meet, Zoom, and your CRM in under 5 minutes.'}
           </p>
           <div style={{ display: 'inline-flex', gap: 16, justifyContent: 'center', alignItems: 'center', background: '#fff', padding: '24px', borderRadius: 20, border: '1px solid rgba(0,0,0,0.04)' }}>
              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0071e3" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-             <div style={{ textAlign: 'left' }}>
-               <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>Free Data Migration</div>
-               <div style={{ fontSize: 14, color: '#6e6e73' }}>Moving from Gong? We'll migrate your call history for free.</div>
+             <div style={{ textAlign: isAr ? 'right' : 'left' }}>
+               <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>
+                 {isAr ? 'نقل بيانات مجاني' : 'Free Data Migration'}
+               </div>
+               <div style={{ fontSize: 14, color: '#6e6e73' }}>
+                 {isAr ? 'هل تنتقل من Gong؟ سنقوم بنقل سجل مكالماتك مجاناً.' : "Moving from Gong? We'll migrate your call history for free."}
+               </div>
              </div>
           </div>
         </div>
@@ -178,19 +229,22 @@ export default function GongClient() {
         <div className="mesh" style={{ bottom: '-30%', right: '-10%', width: '40%', height: '70%', background: '#bf5af2', opacity: 0.12 }} />
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <h2 className="serif" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 400, letterSpacing: '-2px', lineHeight: 1.05, color: '#fff', marginBottom: 20 }}>
-            Make the switch to <br /><span style={{ fontStyle: 'italic', color: '#0071e3' }}>DealFlow AI.</span>
+            {isAr ? 'قم بالانتقال إلى ' : 'Make the switch to '}<br />
+            <span style={{ fontStyle: 'italic', color: '#0071e3' }}>DealFlow AI.</span>
           </h2>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)', marginBottom: 40, lineHeight: 1.6 }}>
-            14-day free trial. Full access to all features. Cancel your expensive Gong contract today.
+            {isAr 
+              ? 'تجربة مجانية لمدة 14 يوماً. وصول كامل لجميع الميزات. ألغِ عقد Gong الباهظ اليوم.' 
+              : '14-day free trial. Full access to all features. Cancel your expensive Gong contract today.'}
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => window.location.href = '/login'}
               style={{ height: 52, padding: '0 32px', borderRadius: 26, border: 'none', background: '#fff', color: '#1d1d1f', fontSize: 16, fontWeight: 600 }}>
-              Start Free Trial →
+              {isAr ? 'ابدأ تجربتك المجانية' : 'Start Free Trial'} {isAr ? '←' : '→'}
             </button>
             <button onClick={() => window.location.href = '/demo'}
               style={{ height: 52, padding: '0 32px', borderRadius: 26, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', fontSize: 16, fontWeight: 500 }}>
-              Book a Demo
+              {isAr ? 'احجز عرضاً توضيحياً' : 'Book a Demo'}
             </button>
           </div>
         </div>
@@ -198,6 +252,6 @@ export default function GongClient() {
 
       {/* FOOTER */}
       <MarketingFooter />
-    </>
+    </div>
   )
 }
