@@ -2,14 +2,12 @@
 
 export const t = {
   en: {
-    // Header
+    // --- DASHBOARD APP TRANSLATIONS ---
     appName: 'DealFlow AI',
     agent: 'Agent',
     meetingActive: 'Meeting Active',
     recording: 'Recording',
     aiThinking: 'AI Analyzing',
-
-    // Hero card
     readyToStart: 'Ready to Start · Session 04',
     sessionLive: '🎙 Recording · Session 04',
     meetingInProgress: '📺 Meeting in Progress · Session 04',
@@ -19,47 +17,36 @@ export const t = {
     endCall: '⏹ End Call',
     microphone: '🎙 Microphone',
     googleMeet: '📺 Google Meet',
-
-    // Meet hint
     meetHintTitle: 'Google Meet / Zoom Integration',
     meetHintBody: 'Join your meeting in another tab → click "📺 Google Meet" → select the tab → check "Share tab audio" → click Share',
     meetHintWorks: 'Works with Meet · Zoom · Teams',
-
-    // Cards
     dealHealth: 'Deal Health Score',
     strong: 'Strong Progress',
     onTrack: 'On Track',
     needsAttention: 'Needs Attention',
     atRisk: 'At Risk',
-
     liveTranscript: 'Live Transcript',
     listen: 'Listen',
     listeningPlaceholder: 'Listening... start speaking to see transcript',
     transcriptHidden: 'Transcript Hidden',
     latest: '↓ Latest',
-
     hotTopics: 'Hot Topics',
     talkRatio: 'Talk Ratio',
     balanced: 'Balanced',
     highTalk: 'High Talk',
-
     objections: 'Detected Objections',
     noObjections: 'No objections detected yet',
     tapCounter: 'Tap to see suggested counter-response',
-
     keyQuestions: 'Key Questions',
     show: '↓ Show',
     hide: '↑ Hide',
-
     buyingSignals: 'Buying Signals',
     listeningSignals: 'Listening for buying signals...',
-
     coachingScore: 'Coaching Score',
     opening: 'Opening',
     objectionHandling: 'Objections',
     activeListening: 'Listening',
     closingMomentum: 'Closing',
-
     agentEnergy: 'Agent Energy',
     clientHesitating: 'Client hesitating',
     energyDesc: {
@@ -68,15 +55,11 @@ export const t = {
       low: 'Energy dropping — pick it up',
       fast: 'Too fast — slow down',
     },
-
     actionItems: 'Action Items',
     aiSmartNotes: 'AI Smart Notes',
     aiCoach: 'AI COACH · ',
     notesPlaceholder: 'AI is listening... Notes will appear here dynamically.',
-
     customerNeeds: 'Customer Needs',
-
-    // Brief panel
     preCallBrief: 'Pre-Call Brief',
     generatingBrief: 'Generating your brief...',
     failedBrief: 'Failed to load brief.',
@@ -87,28 +70,87 @@ export const t = {
     questionsToAsk: '💬 Questions to Ask',
     startMic: '🎙 Start with Microphone',
     startMeet: '📺 Start with Google Meet',
-
-    // Mic error
     micDenied: 'Microphone access denied.',
     noAudio: 'No audio. Check "Share tab audio".',
     permDenied: 'Permission denied.',
     couldNotCapture: 'Could not capture audio. Check "Share tab audio".',
-
-    // Sentiment
     positive: '● Positive',
     negative: '● Negative',
     neutral: '● Neutral',
+
+    // --- MARKETING SITE TRANSLATIONS ---
+    common: {
+      getStarted: 'Get Started Free →',
+      signIn: 'Sign in',
+      freeTrial: '14-day free trial · No credit card required',
+      pricing: 'Pricing',
+      features: 'Features',
+      howItWorks: 'How it works',
+      about: 'About',
+      contact: 'Contact',
+      monthly: 'Monthly',
+      annual: 'Annual',
+      save20: 'Save 20%',
+    },
+    landing: {
+      badge: 'Now available in Arabic & English',
+      heroTitleLine1: 'Close more deals with',
+      heroTitleLine2: 'AI that listens',
+      heroSub: 'DealFlow AI joins your sales calls and gives you real-time coaching, objection handling, and deal insights — in English and Arabic.',
+      seeHowItWorks: 'See how it works',
+      trustedBy: 'Trusted by sales teams across the UAE',
+    },
+    pricing: {
+      title: 'Simple, transparent pricing',
+      subtitle: 'Start with a 14-day free trial. Scale as your sales team grows.',
+      soloName: 'Solo',
+      soloDesc: 'Perfect for independent sales agents.',
+      teamName: 'Team',
+      teamDesc: 'For sales teams aiming for the top.',
+      popular: 'Most Popular',
+      perMonth: 'AED / month',
+    },
+    features: {
+      title: 'Your smart partner in every',
+      titleHighlight: 'sales call',
+      subtitle: 'From the moment the call starts until the follow-up email is sent — DealFlow AI covers all your needs.',
+      feat1Title: 'Live Transcription',
+      feat1Desc: 'Real-time speech-to-text. Supports Khaleeji, Egyptian, and MSA dialects with over 90% accuracy.',
+      feat2Title: 'Smart Deal Coach',
+      feat2Desc: 'Get live tips during the call to handle objections and persuade your clients with confidence.',
+      feat3Title: 'Buying Signals Detection',
+      feat3Desc: 'Never miss an opportunity. The system catches buying hints instantly so you know when to close.',
+      feat4Title: 'Automated AI Follow-up',
+      feat4Desc: 'Ready-to-send WhatsApp messages and emails generated the second your call ends, personalized for your client.',
+    },
+    faq: {
+      title: 'Frequently Asked Questions',
+      q1: 'Does the system support different Arabic dialects?',
+      a1: 'Yes, absolutely. We use advanced AI models specifically designed to understand Khaleeji, Egyptian, and Modern Standard Arabic with very high accuracy.',
+      q2: 'Does it work with Google Meet and Zoom?',
+      a2: 'Yes, DealFlow AI integrates seamlessly with your favorite meeting platforms like Google Meet, Zoom, and Microsoft Teams. It starts recording and analyzing with one click.',
+    },
+    about: {
+      title: 'Built for the MENA region',
+      subtitle: 'We are on a mission to empower Arabic-speaking sales teams with world-class revenue intelligence.',
+    },
+    contact: {
+      title: 'Contact our team',
+      subtitle: 'Have questions about enterprise plans or custom CRM integrations? We are here to help.',
+      name: 'Full Name',
+      email: 'Work Email',
+      message: 'Message',
+      send: 'Send Message',
+    }
   },
 
   ar: {
-    // Header
+    // --- DASHBOARD APP TRANSLATIONS ---
     appName: 'DealFlow AI',
     agent: 'وكيل',
     meetingActive: 'الاجتماع نشط',
     recording: 'جارٍ التسجيل',
     aiThinking: 'الذكاء الاصطناعي يحلل',
-
-    // Hero card
     readyToStart: 'جاهز للبدء · الجلسة 04',
     sessionLive: '🎙 جارٍ التسجيل · الجلسة 04',
     meetingInProgress: '📺 الاجتماع جارٍ · الجلسة 04',
@@ -118,47 +160,36 @@ export const t = {
     endCall: '⏹ إنهاء المكالمة',
     microphone: '🎙 الميكروفون',
     googleMeet: '📺 Google Meet',
-
-    // Meet hint
     meetHintTitle: 'تكامل Google Meet / Zoom',
     meetHintBody: 'انضم إلى اجتماعك في تبويب آخر ← اضغط "📺 Google Meet" ← اختر التبويب ← فعّل "مشاركة صوت التبويب" ← اضغط مشاركة',
     meetHintWorks: 'يعمل مع Meet · Zoom · Teams',
-
-    // Cards
     dealHealth: 'مؤشر صحة الصفقة',
     strong: 'تقدم ممتاز',
     onTrack: 'على المسار الصحيح',
     needsAttention: 'يحتاج اهتماماً',
     atRisk: 'في خطر',
-
     liveTranscript: 'النص المباشر',
     listen: 'الاستماع',
     listeningPlaceholder: 'جارٍ الاستماع... تحدث لترى النص',
     transcriptHidden: 'النص مخفي',
     latest: '↓ الأحدث',
-
     hotTopics: 'المواضيع الرئيسية',
     talkRatio: 'نسبة الحديث',
     balanced: 'متوازن',
     highTalk: 'حديث مفرط',
-
     objections: 'الاعتراضات المكتشفة',
     noObjections: 'لم يتم اكتشاف اعتراضات بعد',
     tapCounter: 'اضغط لرؤية الرد المقترح',
-
     keyQuestions: 'الأسئلة الرئيسية',
     show: '↓ إظهار',
     hide: '↑ إخفاء',
-
     buyingSignals: 'إشارات الشراء',
     listeningSignals: 'جارٍ الاستماع لإشارات الشراء...',
-
     coachingScore: 'نقاط التدريب',
     opening: 'الافتتاح',
     objectionHandling: 'الاعتراضات',
     activeListening: 'الاستماع',
     closingMomentum: 'الإغلاق',
-
     agentEnergy: 'طاقة الوكيل',
     clientHesitating: 'العميل متردد',
     energyDesc: {
@@ -167,15 +198,11 @@ export const t = {
       low: 'الطاقة تنخفض — رفع المستوى',
       fast: 'سريع جداً — تمهّل',
     },
-
     actionItems: 'الإجراءات المطلوبة',
     aiSmartNotes: 'ملاحظات الذكاء الاصطناعي',
     aiCoach: 'المدرب الذكي · ',
     notesPlaceholder: 'الذكاء الاصطناعي يستمع... ستظهر الملاحظات هنا تلقائياً.',
-
     customerNeeds: 'احتياجات العميل',
-
-    // Brief panel
     preCallBrief: 'ملخص ما قبل المكالمة',
     generatingBrief: 'جارٍ إنشاء الملخص...',
     failedBrief: 'فشل تحميل الملخص.',
@@ -186,17 +213,78 @@ export const t = {
     questionsToAsk: '💬 أسئلة مقترحة',
     startMic: '🎙 ابدأ بالميكروفون',
     startMeet: '📺 ابدأ مع Google Meet',
-
-    // Mic error
     micDenied: 'تم رفض الوصول إلى الميكروفون.',
     noAudio: 'لا يوجد صوت. تحقق من "مشاركة صوت التبويب".',
     permDenied: 'تم رفض الإذن.',
     couldNotCapture: 'تعذر التقاط الصوت. تحقق من "مشاركة صوت التبويب".',
-
-    // Sentiment
     positive: '● إيجابي',
     negative: '● سلبي',
     neutral: '● محايد',
+
+    // --- MARKETING SITE TRANSLATIONS ---
+    common: {
+      getStarted: 'ابدأ مجاناً ←',
+      signIn: 'تسجيل الدخول',
+      freeTrial: '14 يوماً مجاناً · بدون بطاقة ائتمان',
+      pricing: 'الأسعار',
+      features: 'المميزات',
+      howItWorks: 'كيف يعمل',
+      about: 'من نحن',
+      contact: 'تواصل معنا',
+      monthly: 'شهري',
+      annual: 'سنوي',
+      save20: 'وفر 20%',
+    },
+    landing: {
+      badge: 'متوفر الآن باللغتين العربية والإنجليزية',
+      heroTitleLine1: 'أغلق المزيد من الصفقات مع',
+      heroTitleLine2: 'ذكاء اصطناعي يستمع لك',
+      heroSub: 'ينضم DealFlow AI إلى مكالمات المبيعات الخاصة بك ويقدم لك تدريباً في الوقت الفعلي، وتعاملاً مع الاعتراضات، ورؤى حول الصفقات — باللغتين الإنجليزية والعربية.',
+      seeHowItWorks: 'شاهد كيف يعمل',
+      trustedBy: 'موثوق به من قبل فرق المبيعات في جميع أنحاء الإمارات',
+    },
+    pricing: {
+      title: 'أسعار بسيطة وشفافة',
+      subtitle: 'فترة تجريبية 14 يوماً. لا حاجة لبطاقة ائتمان.',
+      soloName: 'الفردي (Solo)',
+      soloDesc: 'مثالي لمندوبي المبيعات المستقلين',
+      teamName: 'فريق العمل (Team)',
+      teamDesc: 'لفرق المبيعات التي تطمح للصدارة',
+      popular: 'الأكثر طلباً',
+      perMonth: 'درهم / شهرياً',
+    },
+    features: {
+      title: 'شريكك الذكي في كل',
+      titleHighlight: 'مكالمة مبيعات',
+      subtitle: 'من لحظة بدء المكالمة وحتى إرسال رسالة المتابعة — DealFlow AI يغطي كافة احتياجاتك.',
+      feat1Title: 'تفريغ صوتي مباشر',
+      feat1Desc: 'تحويل الكلام إلى نص في الوقت الفعلي. يدعم اللهجة الخليجية، المصرية، والفصحى بدقة تتجاوز 90%.',
+      feat2Title: 'مدرب صفقات ذكي',
+      feat2Desc: 'احصل على نصائح مباشرة أثناء المكالمة للرد على اعتراضات العملاء وإقناعهم بكل ثقة.',
+      feat3Title: 'اكتشاف إشارات الشراء',
+      feat3Desc: 'لا تفوت أي فرصة. النظام يلتقط تلميحات الشراء فوراً لتعرف متى تطلب إتمام الصفقة.',
+      feat4Title: 'متابعة تلقائية الذكاء',
+      feat4Desc: 'رسائل واتساب ورسائل بريد إلكتروني جاهزة للإرسال بمجرد انتهاء مكالمتك، مخصصة لعميلك.',
+    },
+    faq: {
+      title: 'الأسئلة الشائعة',
+      q1: 'هل يدعم النظام اللهجات العربية المختلفة؟',
+      a1: 'نعم بالتأكيد. نستخدم نماذج ذكاء اصطناعي متقدمة صُممت خصيصاً لفهم اللهجة الخليجية، المصرية، واللغة العربية الفصحى بدقة عالية جداً.',
+      q2: 'هل يعمل مع Google Meet و Zoom؟',
+      a2: 'نعم، يتكامل DealFlow AI بسلاسة مع منصات الاجتماعات المفضلة لديك مثل Google Meet و Zoom و Microsoft Teams. بضغطة زر واحدة يبدأ في تسجيل وتحليل المكالمة.',
+    },
+    about: {
+      title: 'مصمم لمنطقة الشرق الأوسط',
+      subtitle: 'مهمتنا هي تمكين فرق المبيعات الناطقة بالعربية بأفضل أدوات الذكاء الاصطناعي.',
+    },
+    contact: {
+      title: 'تواصل مع فريقنا',
+      subtitle: 'هل لديك أسئلة حول باقات الشركات أو الربط المخصص؟ نحن هنا للمساعدة.',
+      name: 'الاسم الكامل',
+      email: 'البريد الإلكتروني للعمل',
+      message: 'الرسالة',
+      send: 'إرسال الرسالة',
+    }
   },
 }
 

@@ -1,24 +1,43 @@
 'use client'
+import { useState, useEffect, useRef } from 'react'
+// import { t } from '@/lib/translations'
 import MarketingNav from '@/components/marketing/MarketingNav'
 import MarketingFooter from '@/components/marketing/MarketingFooter'
-import { useState, useEffect } from 'react'
 
 export default function HowItWorksClient() {
-  const [scrolled, setScrolled] = useState(false)
+  const [lang, setLang] = useState<'en' | 'ar'>('en')
+  const [mounted, setMounted] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
+  const [isHovered, setIsHovered] = useState(false) // Added to pause auto-play
 
+  // Removed unused 'scrolled' state and its useEffect
+  
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    setMounted(true)
+    const handleStorage = () => {
+      const saved = localStorage.getItem('marketing_lang') as 'en' | 'ar'
+      if (saved) setLang(saved)
+    }
+    handleStorage()
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
+  // Auto-rotate steps, but pause if the user is hovering/interacting
   useEffect(() => {
+    if (isHovered) return // Pause the interval
+
     const interval = setInterval(() => {
       setActiveStep(prev => (prev + 1) % 3)
     }, 3000)
+    
     return () => clearInterval(interval)
-  }, [])
+  }, [isHovered])
+
+  if (!mounted) return null
+
+  // const isAr = lang === 'ar'
+  // const tr = t[lang]
 
   const steps = [
     {
@@ -177,7 +196,6 @@ export default function HowItWorksClient() {
         .fade-up-1 { animation: fadeUp 0.7s ease 0.1s both; }
         .fade-up-2 { animation: fadeUp 0.7s ease 0.2s both; }
         
-        
         .stat-card { background: #f5f5f7; border-radius: 24px; padding: 32px; transition: transform 0.3s, box-shadow 0.3s; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
         .int-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 24px; transition: all 0.3s; }
@@ -218,7 +236,11 @@ export default function HowItWorksClient() {
           </div>
 
           {/* Steps */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div 
+            style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
             {steps.map((step, i) => (
               <div key={i} onClick={() => setActiveStep(i)}
                 style={{ borderRadius: 28, border: `1px solid ${activeStep === i ? step.color + '30' : 'rgba(0,0,0,0.06)'}`, background: activeStep === i ? step.color + '04' : '#f5f5f7', padding: '32px 40px', cursor: 'pointer', transition: 'all 0.3s', display: 'grid', gridTemplateColumns: '80px 1fr auto', alignItems: 'center', gap: 32 }}>
