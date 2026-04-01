@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
+import MarketingNav from '@/components/marketing/MarketingNav'
+import MarketingFooter from '@/components/marketing/MarketingFooter'
 
 export default function ArPageClient() {
   const [billingAnnual, setBillingAnnual] = useState(false)
@@ -170,20 +172,6 @@ export default function ArPageClient() {
         .fade-up-2 { animation: fadeUp 0.7s ease 0.2s both; }
         .fade-up-3 { animation: fadeUp 0.7s ease 0.3s both; }
 
-        .desktop-nav { display: flex; align-items: center; gap: 32px; }
-        @media (max-width: 768px) {
-          .desktop-nav { display: none !important; }
-        }
-
-        .nav-link {
-          font-size: 15px;
-          font-weight: 600;
-          color: #6e6e73;
-          text-decoration: none;
-          transition: color 0.2s;
-          cursor: pointer;
-        }
-        .nav-link:hover { color: #1d1d1f; }
 
         .feature-card {
           background: #f5f5f7;
@@ -221,44 +209,7 @@ export default function ArPageClient() {
         }
       `}</style>
 
-      {/* NAV */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, height: 64,
-        background: scrolled ? 'rgba(255,255,255,0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
-        transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 48px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: '#1d1d1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <span className="brand-font" style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.3px', marginLeft: '16px' }}>DealFlow AI</span>
-        </div>
-
-        <div className="desktop-nav">
-          <span className="nav-link" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>المميزات</span>
-          <span className="nav-link" onClick={() => document.getElementById('testimonials')?.scrollIntoView({ behavior: 'smooth' })}>آراء العملاء</span>
-          <span className="nav-link" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>الأسعار</span>
-          <span className="nav-link" onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}>الأسئلة الشائعة</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => window.location.href = '/'}
-            style={{ height: 36, padding: '0 12px', borderRadius: 8, border: 'none', background: 'rgba(0,0,0,0.04)', color: '#1d1d1f', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-            🇬🇧 EN
-          </button>
-          <button onClick={() => window.location.href = '/login'}
-            style={{ height: 36, padding: '0 18px', borderRadius: 18, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: '#1d1d1f', fontSize: 14, fontWeight: 700 }}>
-            تسجيل الدخول
-          </button>
-          <button onClick={() => window.location.href = '/login'}
-            style={{ height: 36, padding: '0 18px', borderRadius: 18, border: 'none', background: '#1d1d1f', color: '#fff', fontSize: 14, fontWeight: 700 }}>
-            ابدأ الآن مجاناً
-          </button>
-        </div>
-      </nav>
+<MarketingNav activePage="ar" />
 
       {/* HERO */}
       <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '140px 24px 80px', position: 'relative', overflow: 'hidden' }}>
@@ -469,23 +420,7 @@ export default function ArPageClient() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ padding: '40px 48px', background: '#1d1d1f', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
-            <span className="brand-font" style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginLeft: '8px' }}>DealFlow AI</span>
-          </div>
-          <div style={{ display: 'flex', gap: 32 }}>
-            <span onClick={() => window.location.href = '/privacy'} style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: 500 }}>سياسة الخصوصية</span>
-            <span onClick={() => window.location.href = '/terms'} style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: 500 }}>الشروط والأحكام</span>
-            <span onClick={() => window.location.href = '/contact'} style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: 500 }}>اتصل بنا</span>
-          </div>
-          <span className="brand-font" style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>© 2026 DealFlow AI. All rights reserved.</span>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   )
 }
