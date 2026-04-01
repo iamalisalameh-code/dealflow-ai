@@ -1,11 +1,9 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import LandingClient from './ClientPage'
+import MobileAppShell from '@/components/MobileAppShell'
 
-export const metadata: Metadata = {
-  title: 'DealFlow AI | Sales Intelligence for MENA',
-  description: 'Close more deals with AI that listens. Supporting English and Arabic dialects for teams in Dubai, Sharjah, and beyond.',
-}
-
-export default function Page() {
-  return <LandingClient />
+export default async function Page() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileAppShell /> : <LandingClient />
 }
