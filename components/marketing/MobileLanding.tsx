@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react'
+import MobileNav from '@/components/marketing/MobileNav'
+import MobileFooter from '@/components/marketing/MobileFooter'
 
 export default function MobileLanding() {
   const [billingAnnual, setBillingAnnual] = useState(false)
@@ -46,18 +48,7 @@ export default function MobileLanding() {
       `}</style>
 
       {/* STICKY NAV */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0,0,0,0.06)', padding: '0 20px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: '#1d1d1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>DealFlow AI</span>
-        </div>
-        <button onClick={() => window.location.href = '/login'}
-          style={{ height: 34, padding: '0 16px', borderRadius: 17, border: 'none', background: '#1d1d1f', color: '#fff', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
-          Get Started
-        </button>
-      </nav>
+      <MobileNav activePage="landing" />
 
       {/* HERO */}
       <section style={{ padding: '48px 24px 40px', background: '#fff', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -319,25 +310,7 @@ export default function MobileLanding() {
       </section>
 
       {/* MOBILE FOOTER */}
-      <footer style={{ padding: '32px 20px 40px', background: '#1d1d1f', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>DealFlow AI</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 24 }}>
-          {[['How it works', '/how-it-works'], ['Pricing', '/pricing'], ['Features', '/features'], ['About', '/about'], ['Contact', '/contact'], ['Privacy', '/privacy']].map(([label, href]) => (
-            <span key={label} onClick={() => window.location.href = href}
-              style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', padding: '6px 0', cursor: 'pointer' }}>
-              {label}
-            </span>
-          ))}
-        </div>
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 16, fontSize: 12, color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
-          © 2026 DealFlow AI · Dubai, UAE
-        </div>
-      </footer>
+      <MobileFooter />
     </>
   )
 }
