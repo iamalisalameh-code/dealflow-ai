@@ -7,6 +7,8 @@ export default function ArPageClient() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
+    localStorage.setItem('marketing_lang', 'ar')
+    localStorage.setItem('marketing_lang', 'ar')
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)

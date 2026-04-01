@@ -5,7 +5,7 @@ import MarketingNav from '@/components/marketing/MarketingNav'
 import MarketingFooter from '@/components/marketing/MarketingFooter'
 
 export default function AboutClient() {
-  const [lang, setLang] = useState<'en' | 'ar'>('en')
+  const [lang, setLang] = useState<'en' | 'ar'>(() => { if (typeof window !== 'undefined') { return (localStorage.getItem('marketing_lang') as 'en' | 'ar') || 'en' } return 'en' })
   const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
