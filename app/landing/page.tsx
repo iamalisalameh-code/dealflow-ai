@@ -311,7 +311,7 @@ export default function LandingPage() {
       <MarketingNav activePage="landing" />
 
       {/* HERO */}
-      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px 80px', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 'clamp(100px, 10vw, 140px) clamp(20px, 5vw, 48px) clamp(60px, 8vw, 80px)', position: 'relative', overflow: 'hidden' }}>
         
         {/* Mesh background */}
         <div className="mesh" style={{ top: '-20%', left: '-10%', width: '60%', height: '60%', background: '#0071e3', opacity: 0.07 }} />
