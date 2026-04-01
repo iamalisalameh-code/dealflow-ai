@@ -250,7 +250,7 @@ export default function HowItWorksClient() {
       </section>
 
       {/* STATS */}
-      <section style={{ padding: '120px 48px', background: '#f5f5f7' }}>
+      <section style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#f5f5f7' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>By the numbers</div>
@@ -275,7 +275,7 @@ export default function HowItWorksClient() {
       </section>
 
       {/* INTEGRATIONS */}
-      <section style={{ padding: '120px 48px', background: '#fff' }}>
+      <section style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#fff' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Integrations</div>
@@ -312,7 +312,7 @@ export default function HowItWorksClient() {
       </section>
 
       {/* FINAL CTA */}
-      <section style={{ padding: '120px 48px', background: '#1d1d1f', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#1d1d1f', position: 'relative', overflow: 'hidden' }}>
         <div className="mesh" style={{ top: '-30%', left: '-10%', width: '50%', height: '80%', background: '#0071e3', opacity: 0.15 }} />
         <div className="mesh" style={{ bottom: '-30%', right: '-10%', width: '40%', height: '70%', background: '#bf5af2', opacity: 0.12 }} />
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>

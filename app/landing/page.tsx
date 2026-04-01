@@ -422,7 +422,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="mkt-section" style={{ padding: '120px 48px', background: '#fff' }}>
+      <section id="features" className="mkt-section" style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#fff' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Everything you need</div>
@@ -449,7 +449,7 @@ export default function LandingPage() {
       </section>
 
       {/* ARABIC FEATURE HIGHLIGHT */}
-      <section style={{ padding: '80px 48px', background: '#f5f5f7' }}>
+      <section style={{ padding: 'clamp(40px, 8vw, 80px) clamp(20px, 5vw, 48px)', background: '#f5f5f7' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#bf5af2', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Built for the region</div>
@@ -497,7 +497,7 @@ export default function LandingPage() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" className="mkt-section" style={{ padding: '120px 48px', background: '#fff' }}>
+      <section id="pricing" className="mkt-section" style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#fff' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Pricing</div>
@@ -569,7 +569,7 @@ export default function LandingPage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section id="testimonials" className="mkt-section" style={{ padding: '120px 48px', background: '#f5f5f7' }}>
+      <section id="testimonials" className="mkt-section" style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#f5f5f7' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Testimonials</div>
@@ -601,7 +601,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="mkt-section" style={{ padding: '120px 48px', background: '#fff' }}>
+      <section id="faq" className="mkt-section" style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#fff' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>FAQ</div>
@@ -632,7 +632,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA / WAITLIST */}
-      <section style={{ padding: '120px 48px', background: '#1d1d1f', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: 'clamp(60px, 10vw, 120px) clamp(20px, 5vw, 48px)', background: '#1d1d1f', position: 'relative', overflow: 'hidden' }}>
         <div className="mesh" style={{ top: '-30%', left: '-10%', width: '50%', height: '80%', background: '#0071e3', opacity: 0.15 }} />
         <div className="mesh" style={{ bottom: '-30%', right: '-10%', width: '40%', height: '70%', background: '#bf5af2', opacity: 0.12 }} />
 

@@ -263,7 +263,7 @@ export default function PricingClient() {
       </section>
 
       {/* COMPARISON TABLE */}
-      <section style={{ padding: '80px 48px', background: '#f5f5f7' }}>
+      <section style={{ padding: 'clamp(40px, 8vw, 80px) clamp(20px, 5vw, 48px)', background: '#f5f5f7' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <h2 className="serif" style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.1 }}>
@@ -307,7 +307,7 @@ export default function PricingClient() {
       </section>
 
       {/* FAQ */}
-      <section style={{ padding: '100px 48px', background: '#fff' }}>
+      <section style={{ padding: 'clamp(50px, 9vw, 100px) clamp(20px, 5vw, 48px)', background: '#fff' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <h2 className="serif" style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 400, letterSpacing: '-1px', lineHeight: 1.1 }}>
@@ -333,7 +333,7 @@ export default function PricingClient() {
       </section>
 
       {/* FINAL CTA */}
-      <section style={{ padding: '100px 48px', background: '#1d1d1f', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: 'clamp(50px, 9vw, 100px) clamp(20px, 5vw, 48px)', background: '#1d1d1f', position: 'relative', overflow: 'hidden' }}>
         <div className="mesh" style={{ top: '-30%', left: '-10%', width: '50%', height: '80%', background: '#0071e3', opacity: 0.15 }} />
         <div className="mesh" style={{ bottom: '-30%', right: '-10%', width: '40%', height: '70%', background: '#bf5af2', opacity: 0.12 }} />
         <div style={{ maxWidth: 560, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>

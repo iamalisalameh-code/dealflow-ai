@@ -100,3 +100,41 @@ body {
   .mkt-grid-4 { grid-template-columns: 1fr 1fr !important; }
   .mkt-hide-mobile { display: none !important; }
 }
+
+/* Mobile-first responsive grids */
+@media (max-width: 768px) {
+  /* Force all 3-col and 2-col grids to single column */
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns: repeat(2"],
+  [style*="grid-template-columns: '1fr 1fr 1fr'"],
+  [style*="grid-template-columns: '1fr 1fr'"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Footer columns */
+  [style*="grid-template-columns: '2fr 1fr 1fr 1fr 1fr'"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Hide app preview mockup on mobile */
+  [style*="maxWidth: 1000"] {
+    display: none !important;
+  }
+
+  /* Pricing cards - stack on mobile */
+  [style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Comparison table - hide on mobile */
+  .mkt-comparison-table {
+    display: none !important;
+  }
+
+  /* Max width for text on mobile */
+  [style*="maxWidth: 1100"],
+  [style*="maxWidth: 900"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
