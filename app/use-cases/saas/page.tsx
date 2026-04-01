@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import SaasClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'SaaS Sales Intelligence | DealFlow AI',
-  description: 'Track BANT and MEDDIC frameworks automatically.',
-}
-
-export default function Page() {
-  return <SaasClient />
+import MobileSaas from '@/components/marketing/MobileSaas'
+export default async function SaasPage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileSaas /> : <SaasClient />
 }

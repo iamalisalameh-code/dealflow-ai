@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import RealEstateClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'AI for Real Estate | Dubai & Sharjah',
-  description: 'Nail every property viewing follow-up with Khaleeji Arabic support.',
-}
-
-export default function Page() {
-  return <RealEstateClient />
+import MobileRealEstate from '@/components/marketing/MobileRealEstate'
+export default async function RealEstatePage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileRealEstate /> : <RealEstateClient />
 }

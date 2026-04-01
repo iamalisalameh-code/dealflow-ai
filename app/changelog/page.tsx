@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import ChangelogClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'Product Updates | DealFlow AI',
-  description: 'Latest features and improvements shipped for DealFlow AI.',
-}
-
-export default function Page() {
-  return <ChangelogClient />
+import MobileChangelog from '@/components/marketing/MobileChangelog'
+export default async function ChangelogPage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileChangelog /> : <ChangelogClient />
 }

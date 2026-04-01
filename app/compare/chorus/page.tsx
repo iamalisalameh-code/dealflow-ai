@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import ChorusClient from './ClientPage'
-
-export const metadata: Metadata = {
-  title: 'DealFlow AI vs Chorus | Compare Features',
-  description: 'Better dialect recognition and flexible local pricing.',
-}
-
-export default function Page() {
-  return <ChorusClient />
+import MobileCompareChorus from '@/components/marketing/MobileCompareChorus'
+export default async function ChorusPage() {
+  const h = await headers()
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(h.get('user-agent') || '')
+  return isMobile ? <MobileCompareChorus /> : <ChorusClient />
 }
