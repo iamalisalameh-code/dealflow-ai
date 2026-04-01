@@ -14,6 +14,7 @@ export default function PricingClient() {
   const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [annual, setAnnual] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   // Language Engine
   useEffect(() => {
@@ -361,21 +362,18 @@ export default function PricingClient() {
                 {isAr ? 'أسئلة الأسعار' : 'Pricing questions'}
               </h2>
             </div>
-            {faqs.map((faq, i) => {
-              const [open, setOpen] = useState(false)
-              return (
-                <div key={i} className="faq-item">
-                  <button onClick={() => setOpen(!open)}
+            {faqs.map((faq, i) => (
+  <div key={i} className="faq-item">
+    <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     style={{ width: '100%', padding: '22px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', textAlign: isAr ? 'right' : 'left', color: '#1d1d1f', fontSize: 16, fontWeight: 600 }}>
                     {faq.q}
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(45deg)' : 'none', marginLeft: isAr ? 0 : 16, marginRight: isAr ? 16 : 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#f5f5f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.2s', transform: openFaq === i ? 'rotate(45deg)' : 'none', marginLeft: isAr ? 0 : 16, marginRight: isAr ? 16 : 0 }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     </div>
                   </button>
-                  {open && <div style={{ paddingBottom: 22, fontSize: 15, color: '#6e6e73', lineHeight: 1.7, fontWeight: 500 }}>{faq.a}</div>}
+                  {openFaq === i && <div style={{ paddingBottom: 22, fontSize: 15, color: '#6e6e73', lineHeight: 1.7, fontWeight: 500 }}>{faq.a}</div>}
                 </div>
-              )
-            })}
+            ))}
           </div>
         </section>
 
