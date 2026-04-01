@@ -24,17 +24,6 @@ export default function MarketingNav({ activePage }: Props) {
 
   return (
     <>
-      <style>{`
-        @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-        .mkt-desktop-links { display: flex; }
-        .mkt-desktop-ctas { display: flex; }
-        .mkt-hamburger { display: none; }
-        @media (max-width: 768px) {
-          .mkt-desktop-links { display: none !important; }
-          .mkt-desktop-ctas { display: none !important; }
-          .mkt-hamburger { display: flex !important; }
-        }
-      `}</style>
 
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,

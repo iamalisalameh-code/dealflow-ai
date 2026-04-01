@@ -422,7 +422,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" style={{ padding: '120px 48px', background: '#fff' }}>
+      <section id="features" className="mkt-section" style={{ padding: '120px 48px', background: '#fff' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Everything you need</div>
@@ -497,7 +497,7 @@ export default function LandingPage() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" style={{ padding: '120px 48px', background: '#fff' }}>
+      <section id="pricing" className="mkt-section" style={{ padding: '120px 48px', background: '#fff' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Pricing</div>
@@ -569,7 +569,7 @@ export default function LandingPage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section id="testimonials" style={{ padding: '120px 48px', background: '#f5f5f7' }}>
+      <section id="testimonials" className="mkt-section" style={{ padding: '120px 48px', background: '#f5f5f7' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Testimonials</div>
@@ -601,7 +601,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" style={{ padding: '120px 48px', background: '#fff' }}>
+      <section id="faq" className="mkt-section" style={{ padding: '120px 48px', background: '#fff' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 72 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#0071e3', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>FAQ</div>
