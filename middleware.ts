@@ -22,20 +22,23 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
-  // Allow these paths without auth
-  const publicPaths = ['/login', '/auth/callback', '/join', '/api', '/landing', '/how-it-works', '/pricing']
+  const publicPaths = [
+    '/login', '/auth/callback', '/join', '/api',
+    '/landing', '/how-it-works', '/pricing', '/features',
+    '/about', '/contact', '/privacy', '/terms', '/demo',
+    '/blog', '/changelog', '/compare', '/use-cases', '/ar',
+  ]
+
   const isPublic = publicPaths.some(p => pathname.startsWith(p))
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
-    url.pathname = '/landing', '/how-it-works', '/pricing'
+    url.pathname = '/landing'
     return NextResponse.redirect(url)
   }
 
-  // If logged in and trying to access login, redirect to dashboard
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/'
