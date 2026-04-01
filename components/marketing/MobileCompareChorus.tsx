@@ -50,6 +50,12 @@ export default function MobileCompareChorus() {
     },
   ]
 
+  // Define dynamic serif style to avoid CSS parser errors
+  const serifStyle = {
+    fontFamily: isAr ? "'Noto Sans Arabic', sans-serif" : "'DM Serif Display', serif",
+    fontWeight: isAr ? 700 : 400
+  }
+
   return (
     <div style={{ 
       direction: isAr ? 'rtl' : 'ltr', 
@@ -57,18 +63,10 @@ export default function MobileCompareChorus() {
       minHeight: '100vh',
       background: '#fff'
     }}>
+      {/* Static CSS only - No JS variables inside here to prevent IDE errors */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap'); 
-        
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; } 
-        
-        .serif { font-family: 'DM Serif Display', serif; }
-        
-        [dir="rtl"] .serif { 
-          font-family: 'Noto Sans Arabic', sans-serif !important; 
-          font-weight: 700; 
-        }
-
         .tap-btn { transition: transform 0.15s; }
         .tap-btn:active { transform: scale(0.97); }
       `}</style>
@@ -79,10 +77,10 @@ export default function MobileCompareChorus() {
         <div style={{ fontSize: 11, fontWeight: 700, color: '#bf5af2', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10 }}>
           {isAr ? 'مقارنة' : 'Comparison'}
         </div>
-        <h1 className="serif" style={{ fontSize: 34, fontWeight: 400, letterSpacing: '-1.5px', lineHeight: 1.1, marginBottom: 14 }}>
+        <h1 style={{ ...serifStyle, fontSize: 34, letterSpacing: '-1.5px', lineHeight: 1.1, marginBottom: 14 }}>
           DealFlow AI<br />
           {isAr ? 'مقابل ' : 'vs '} 
-          <span style={{ fontStyle: 'italic', color: '#bf5af2' }}>Chorus</span>
+          <span style={{ fontStyle: isAr ? 'normal' : 'italic', color: '#bf5af2' }}>Chorus</span>
         </h1>
         <p style={{ fontSize: 15, color: '#6e6e73', lineHeight: 1.6 }}>
           {isAr 
@@ -132,9 +130,9 @@ export default function MobileCompareChorus() {
       </section>
 
       <section style={{ padding: '40px 20px 48px', background: '#1d1d1f', textAlign: 'center' }}>
-        <h2 className="serif" style={{ fontSize: 30, fontWeight: 400, color: '#fff', letterSpacing: '-1px', marginBottom: 10 }}>
+        <h2 style={{ ...serifStyle, fontSize: 30, color: '#fff', letterSpacing: '-1px', marginBottom: 10 }}>
           {isAr ? 'انتقل إلى DealFlow AI' : 'Switch to DealFlow AI'}<br />
-          <span style={{ fontStyle: 'italic', color: '#34c759' }}>{isAr ? 'مجاناً لمدة 14 يوماً' : 'free for 14 days'}</span>
+          <span style={{ fontStyle: isAr ? 'normal' : 'italic', color: '#34c759' }}>{isAr ? 'مجاناً لمدة 14 يوماً' : 'free for 14 days'}</span>
         </h2>
         <button className="tap-btn" onClick={() => window.location.href = '/login'}
           style={{ width: '100%', maxWidth: 300, height: 52, borderRadius: 26, border: 'none', background: '#fff', color: '#1d1d1f', fontSize: 16, fontWeight: 600, fontFamily: 'inherit', marginTop: 20 }}>
