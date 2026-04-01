@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import MarketingNav from '@/components/marketing/MarketingNav'
+import MarketingFooter from '@/components/marketing/MarketingFooter'
 
 export default function LandingPage() {
   const [billingAnnual, setBillingAnnual] = useState(false)
@@ -253,15 +255,6 @@ export default function LandingPage() {
         .fade-up-3 { animation: fadeUp 0.7s ease 0.3s both; }
         .fade-up-4 { animation: fadeUp 0.7s ease 0.4s both; }
 
-        .nav-link {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--text2);
-          text-decoration: none;
-          transition: color 0.2s;
-          cursor: pointer;
-        }
-        .nav-link:hover { color: var(--text); }
 
         .feature-card {
           background: var(--bg2);
@@ -315,45 +308,7 @@ export default function LandingPage() {
       `}</style>
 
       {/* NAV */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        height: 64,
-        background: scrolled ? 'rgba(255,255,255,0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
-        transition: 'all 0.3s',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 48px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: '#1d1d1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <span style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.3px' }}>DealFlow AI</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <span className="nav-link" onClick={() => window.location.href = '/how-it-works'}>How it works</span>
-          {['Features', 'Testimonials', 'FAQ'].map(item => (
-  <span key={item} className="nav-link"
-    onClick={() => document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}>
-  {item}
-  </span>
-))}
-<span className="nav-link" onClick={() => window.location.href = '/pricing'}>Pricing</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => window.location.href = '/login'}
-            style={{ height: 36, padding: '0 18px', borderRadius: 18, border: '1px solid rgba(0,0,0,0.12)', background: 'transparent', color: '#1d1d1f', fontSize: 14, fontWeight: 500 }}>
-            Sign in
-          </button>
-          <button onClick={() => window.location.href = '/login'}
-            style={{ height: 36, padding: '0 18px', borderRadius: 18, border: 'none', background: '#1d1d1f', color: '#fff', fontSize: 14, fontWeight: 600 }}>
-            Get Started →
-          </button>
-        </div>
-      </nav>
+      <MarketingNav activePage="landing" />
 
       {/* HERO */}
       <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px 80px', position: 'relative', overflow: 'hidden' }}>
@@ -716,22 +671,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ padding: '48px', background: '#1d1d1f', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>DealFlow AI</span>
-          </div>
-          <div style={{ display: 'flex', gap: 32 }}>
-            {[['Pricing', '/pricing'], ['How it works', '/how-it-works'], ['Privacy', '/privacy'], ['Terms', '/terms']].map(([label, href]) => (
-  <span key={label} onClick={() => window.location.href = href} style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>{label}</span>
-))}
-          </div>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>© 2026 DealFlow AI. All rights reserved.</span>
-        </div>
-      </footer>
+      <MarketingFooter />
     </>
   )
 }
