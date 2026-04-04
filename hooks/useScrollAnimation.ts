@@ -1,20 +1,25 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-export function useScrollAnimation() {
+export function useScrollAnimation(threshold = 0.12) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible')
-          }
-        });
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          obs.disconnect()
+        }
       },
-      { threshold: 0.1 }
-    );
+      { threshold }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [threshold])
 
-    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+  return { ref, visible }
 }
