@@ -42,12 +42,11 @@ export default function MobileAppShell() {
 
   const navItems = [
     {
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
-      label: isAr ? 'لوحة التحكم' : 'Dashboard',
-      href: '/',
-      disabled: true,
-      badge: isAr ? 'سطح المكتب فقط' : 'Desktop only',
-    },
+  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+  label: isAr ? 'الاتصال' : 'Dialer',
+  href: '/dialer',
+  disabled: false,
+},
     {
       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
       label: isAr ? 'سجل المكالمات' : 'Call History',
@@ -146,7 +145,7 @@ export default function MobileAppShell() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 16, fontWeight: 500, color: item.disabled ? 'rgba(255,255,255,0.3)' : '#fff' }}>{item.label}</div>
-              {item.badge && <div style={{ fontSize: 11, color: '#0a84ff', fontWeight: 600, marginTop: 2 }}>{item.badge}</div>}
+              {(item as any).badge && <div style={{ fontSize: 11, color: '#0a84ff', fontWeight: 600, marginTop: 2 }}>{(item as any).badge}</div>}
             </div>
             {!item.disabled && (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round">
