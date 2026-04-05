@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { UserIcon, BriefcaseIcon, TargetIcon, FileIcon, AlertTriangleIcon, GlobeIcon } from '@/components/Icons'
+import AppSidebar from '@/components/AppSidebar'
 
 type Lang = 'en' | 'ar'
 
@@ -216,31 +217,33 @@ export default function SettingsPage() {
           <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '40%', height: '40%', borderRadius: '50%', background: '#bf5af2', filter: 'blur(160px)', opacity: 0.04 }} />
         </div>
 
-        {/* Topbar */}
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 50, background: 'var(--topbar-bg)', backdropFilter: 'blur(40px)', borderBottom: '1px solid var(--divider)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span onClick={() => window.location.href = '/'} style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer', letterSpacing: '-0.3px' }}>DealFlow AI</span>
-            <div style={{ width: 1, height: 16, background: 'var(--divider)' }} />
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{isRTL ? 'الإعدادات' : 'Settings'}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <button onClick={() => { const next = lang === 'en' ? 'ar' : 'en'; setLang(next); localStorage.setItem('lang', next) }}
-              style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              <GlobeIcon size={13} color="currentColor" style={{ marginRight: 6 }} />{isRTL ? 'EN' : 'AR'}
-            </button>
-            <button onClick={() => window.location.href = '/'} style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {isRTL ? '← الرئيسية' : '← Dashboard'}
-            </button>
-          </div>
-        </div>
+        {/* Sidebar layout */}
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', height: '100vh', padding: 16, gap: 16 }}>
+          <AppSidebar activePage="settings" />
+
+          {/* Main content */}
+          <div className="cs" style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
+
+            {/* Top bar inside content */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, paddingTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+                  {isRTL ? 'الإعدادات' : 'Settings'}
+                </span>
+              </div>
+              <button onClick={() => { const next = lang === 'en' ? 'ar' : 'en'; setLang(next); localStorage.setItem('lang', next) }}
+                style={{ height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--card-border)', background: isRTL ? 'rgba(10,132,255,0.15)' : 'transparent', color: isRTL ? '#0a84ff' : 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {isRTL ? 'EN' : 'AR'}
+              </button>
+            </div>
 
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 64px)', gap: 12, color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12, color: 'var(--text-secondary)' }}>
             <div style={{ width: 18, height: 18, border: '2px solid var(--divider)', borderTopColor: 'var(--text-secondary)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
             {isRTL ? 'جاري التحميل...' : 'Loading...'}
           </div>
         ) : (
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
             {/* Profile header card */}
             <div style={{ borderRadius: 28, background: 'var(--card-bg)', border: '1px solid var(--card-border)', backdropFilter: 'blur(40px)', padding: '28px 32px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 20, animation: 'fadeUp 0.3s ease' }}>
@@ -498,6 +501,8 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+      </div>
+        </div>
       </div>
     </>
   )
