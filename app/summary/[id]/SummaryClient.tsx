@@ -13,6 +13,7 @@ interface Call {
   insights: any
   notes: string
   status: string
+  call_mode?: string
 }
 
 function AppleRing({ value, color, size = 80, stroke = 8 }: { value: number, color: string, size?: number, stroke?: number }) {
@@ -212,10 +213,10 @@ export default function SummaryClient({ id }: { id: string }) {
     setGeneratingFollowup(true)
     try {
       const res = await fetch('/api/followup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ call }),
-      })
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ call, callMode: call?.call_mode || 'meet' })
+})
       const data = await res.json()
       if (!data.error) setFollowup(data)
     } catch (err) { console.error(err) }

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
-    const { contact } = await request.json()
+    const { contact, callMode } = await request.json()
 
     const cookieStore = await cookies()
     const supabase = createServerClient(
@@ -37,9 +37,15 @@ export async function POST(request: Request) {
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
-
+const modeContext = callMode === 'phone'
+  ? `CALL MODE: Outbound phone call — agent will only be heard, client audio won't be captured. Brief should focus on what the AGENT should say and ask. Flag that insights will be inferred from agent speech only.`
+  : callMode === 'onsite'
+  ? `CALL MODE: In-person on-site meeting — both parties will be recorded. Brief should prepare the agent for face-to-face dynamics: body language cues, room control, physical presentation materials if relevant.`
+  : `CALL MODE: Google Meet / Zoom video call — full duplex audio captured. Standard brief applies.`
     const prompt = `
 You are a pre-call AI coach. Generate a brief for a sales agent about to call a contact.
+
+${modeContext}
 
 AGENT PROFILE:
 Name: ${profile?.full_name || 'Agent'}

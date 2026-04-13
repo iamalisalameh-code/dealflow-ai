@@ -2,13 +2,19 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { call } = await request.json()
+    const { call, callMode } = await request.json()
 
     const prompt = `
 You are a professional sales follow-up assistant.
 
 Generate TWO follow-up messages based on this sales call:
-
+CALL MODE: ${
+  callMode === 'phone'
+    ? 'Outbound phone call — only the agent was recorded. Client responses were NOT captured. The transcript contains agent speech only. Write follow-ups that do NOT reference things the client said directly — instead reference what the agent proposed, offered, or discussed. Do not fabricate client quotes or reactions.'
+    : callMode === 'onsite'
+    ? 'In-person on-site meeting — both parties were recorded. Full context available. Follow-ups can reference specific things both parties said.'
+    : 'Google Meet / Zoom video call — full duplex audio. Follow-ups can reference specific things both parties said.'
+}
 CONTACT: ${call.contact_name} from ${call.company}
 TRANSCRIPT SUMMARY: ${call.transcript?.slice(0, 1500) || 'No transcript'}
 NEXT ACTIONS: ${call.insights?.nextActions?.join(', ') || 'None'}

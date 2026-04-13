@@ -395,7 +395,7 @@ const toggleLang = () => {
     setLoadingBrief(true)
     setBrief(null)
     try {
-      const res = await fetch('/api/brief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact }) })
+      const res = await fetch('/api/brief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact, callMode: inputMode }) })
       const data = await res.json()
       setBrief(data)
     } catch (err) { console.error(err) }
