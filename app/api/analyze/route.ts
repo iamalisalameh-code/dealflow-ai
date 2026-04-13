@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
-    const { transcript, language } = await request.json()
+    const { transcript, language, callMode } = await request.json()
 
     if (!transcript) {
       return NextResponse.json({ error: 'No transcript provided' }, { status: 400 })
@@ -72,8 +72,44 @@ ${docTexts.map((t, i) => `--- Document ${i + 1} ---\n${t}`).join('\n\n')}
     const arabicInstruction = isArabic
       ? `\nIMPORTANT: This call is in Arabic. Return ALL text values in Arabic (hotTopics, objections, keyQuestions, nextActions, customerNeeds, notes, buyingSignals, hesitationMoments). Keep all JSON keys in English. Numbers stay as numbers. sentiment must still be one of: positive|neutral|negative. energyLevel must still be one of: confident|steady|low|fast.\n`
       : ''
+const modePrompt = callMode === 'phone'
+  ? `
+CRITICAL CONTEXT — ONE-SIDED RECORDING:
+You are analyzing a phone call where ONLY the agent's voice was recorded. The client's responses are NOT in the transcript. The agent is speaking to someone you cannot hear.
 
+Your job:
+- Read the agent's questions, pauses, responses, and language patterns
+- INFER the likely client reactions and deal state from context clues
+- Flag EVERY insight with confidence_level: "inferred"
+- Set inferred: true in your response
+- For dealHealthScore, return a range (dealHealthRange: [low, high]) instead of a single number
+- Do NOT present assumptions as facts — use language like "likely", "suggests", "appears to"
+- For sentiment: assess the CLIENT's likely sentiment based on HOW the agent is responding to them
+- For buyingSignals: only include signals you can reasonably infer from the agent's responses
+- For hesitationMoments: infer from moments where the agent over-explains, repeats, or handles objections
+`
+  : callMode === 'onsite'
+  ? `
+CONTEXT — ON-SITE MEETING (DIARIZED AUDIO):
+You are analyzing an in-person meeting recorded via microphone. Both the agent and client were in the same room. The transcript may have speaker labels (Speaker 0, Speaker 1, or names).
+
+Your job:
+- Treat Speaker 0 as the agent unless context suggests otherwise
+- Treat Speaker 1 as the client
+- Both sides are captured — analyze with full confidence
+- Pay special attention to in-person buying signals: tone shifts, agreement language, specific questions about next steps
+- For hesitationMoments: these carry extra weight in person — flag them carefully
+- confidence_level: "high"
+- inferred: false
+`
+  : `
+CONTEXT — GOOGLE MEET / ZOOM CALL (FULL DUPLEX):
+You are analyzing a video call with both parties' audio captured. Full context is available.
+- confidence_level: "high"
+- inferred: false
+`
     const agentContext = profile ? `
+${modePrompt}
 You are an elite AI sales coach and real-time deal analyst embedded inside a live sales call.
 
 You are coaching ${profile.full_name || 'this agent'} who works in ${profile.industry || 'sales'} at the ${profile.experience || 'intermediate'} level.
@@ -126,6 +162,7 @@ For hesitationMoments: Short quotes where client was uncertain. Empty array if n
 
 For energyLevel: "confident" | "steady" | "low" | "fast"
 ${arabicInstruction}` : `
+${modePrompt}
 You are an expert AI sales coach analyzing a live sales call.
 Analyze the transcript and return insights to help the agent close the deal.
 ${arabicInstruction}`
@@ -162,7 +199,10 @@ Return ONLY a valid JSON object with exactly this structure:
   },
   "buyingSignals": ["signal 1"],
   "hesitationMoments": ["exact quote"],
-  "energyLevel": "confident"
+  "energyLevel": "confident",
+  "confidence_level": "high|partial|inferred",
+  "inferred": false,
+  "dealHealthRange": null
 }
 TRANSCRIPT:
 ${transcript}`

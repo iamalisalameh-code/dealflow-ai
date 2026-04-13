@@ -406,7 +406,7 @@ const toggleLang = () => {
     if (!text.trim() || text.length < 50) return
     setIsAnalyzing(true)
     try {
-      const res = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transcript: text, language: lang }) })
+      const res = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transcript: text, language: lang, callMode: inputMode }) })
       const data = await res.json()
       if (data.error === 'rate_limited') { setIsAnalyzing(false); return }
       if (!data.error) {
@@ -563,6 +563,7 @@ chunksRef.current = []
           contact_name: selectedContact?.full_name || agentName,
           company: selectedContact?.company || 'Unknown',
           transcript: fullTranscriptRef.current, insights, notes, status: 'completed',
+          call_mode: inputMode,
         })
         if (selectedContact?.id) {
           const { data: existing } = await supabase.from('contacts').select('total_calls, avg_deal_health, notes').eq('id', selectedContact.id).single()
