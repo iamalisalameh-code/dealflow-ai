@@ -22,7 +22,18 @@ function AppleRing({ value, color, size = 120, stroke = 12 }: { value: number, c
     </div>
   )
 }
-
+function InferredBadge() {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      padding: '2px 8px', borderRadius: 8,
+      background: 'rgba(255,159,10,0.12)',
+      border: '1px solid rgba(255,159,10,0.2)',
+      fontSize: 10, fontWeight: 600, color: '#ff9f0a',
+      letterSpacing: '0.05em', flexShrink: 0,
+    }}>~ inferred</span>
+  )
+}
 function IOSToggle({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={onChange}>
@@ -104,6 +115,12 @@ const translations = {
     questionsToAsk: '💬 Questions to Ask',
     startMic: 'Start with Microphone',
     startMeet: 'Start with Google Meet',
+    modeLabel: 'How are you taking this call?',
+    modeMeet: '📹 Google Meet',
+    modeOnsite: '🏢 On-Site Meeting',
+    modePhone: '📞 Phone Call',
+    modePhoneHint: 'Client audio not captured — insights will be inferred',
+    oneSidedBanner: 'One-sided recording · insights inferred from agent speech',
     noContacts: 'No contacts yet',
     close: 'Close ✕',
   },
@@ -176,6 +193,12 @@ const translations = {
     questionsToAsk: '💬 أسئلة مقترحة',
     startMic: 'ابدأ بالميكروفون',
     startMeet: 'ابدأ مع Google Meet',
+    modeLabel: 'كيف ستجري هذه المكالمة؟',
+    modeMeet: '📹 Google Meet',
+    modeOnsite: '🏢 اجتماع حضوري',
+    modePhone: '📞 مكالمة هاتفية',
+    modePhoneHint: 'لن يتم تسجيل صوت العميل — ستكون الرؤى مستنتجة',
+    oneSidedBanner: 'تسجيل أحادي الجانب · الرؤى مستنتجة من كلام الوكيل',
     noContacts: 'لا توجد جهات اتصال',
     close: 'إغلاق ✕',
   }
@@ -253,6 +276,7 @@ export default function LandingClient() {
   const [showContactDropdown, setShowContactDropdown] = useState(false)
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
   const [lang, setLang] = useState<'en' | 'ar'>('en')
+  const [inputMode, setInputMode] = useState<'meet' | 'onsite' | 'phone'>('meet')
 
 useEffect(() => {
   const saved = localStorage.getItem('lang') as 'en' | 'ar'
@@ -687,7 +711,13 @@ const energyMap: Record<string, { color: string, pct: number, desc: string }> = 
             {micError && (
               <div style={{ margin: '0 32px 12px', padding: '12px 16px', background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.25)', borderRadius: 16, fontSize: 13, color: '#ff453a', flexShrink: 0 }}>⚠ {micError}</div>
             )}
-
+            {/* One-sided recording banner — phone mode only */}
+            {isLive && inputMode === 'phone' && (
+              <div style={{ margin: '0 32px 10px', padding: '8px 16px', borderRadius: 12, background: 'rgba(255,159,10,0.07)', border: '1px solid rgba(255,159,10,0.18)', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <span style={{ fontSize: 12, color: '#ff9f0a', flexShrink: 0 }}>◈</span>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{tr.oneSidedBanner}</span>
+              </div>
+            )}
             {/* Bento Grid */}
             <div className="cs" style={{ flex: 1, overflowY: 'auto', padding: '0 8px 24px', display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gridAutoRows: 'min-content', gap: 16, alignContent: 'start' }}>
 
@@ -729,14 +759,45 @@ const energyMap: Record<string, { color: string, pct: number, desc: string }> = 
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c1.12.45 2.3.75 3.53.85a2 2 0 0 1 1.8 1.99V21a2 2 0 0 1-2.18 2C7.67 21.81 2 16.14 2 9a2 2 0 0 1 2-2h3.5a2 2 0 0 1 2 1.8c.1 1.22.4 2.4.85 3.52a2 2 0 0 1-.45 2.11l-1.27 1.27z"/><line x1="23" y1="1" x2="1" y2="23"/></svg>{tr.endCall}
                     </button>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <button onClick={startMicCall} style={{ height: 44, padding: '0 22px', borderRadius: 22, border: '1px solid rgba(48,209,88,0.25)', background: 'rgba(48,209,88,0.12)', color: '#30d158', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>{tr.microphone}
-                      </button>
-                      <button onClick={startTabCall} style={{ height: 44, padding: '0 22px', borderRadius: 22, border: '1px solid rgba(10,132,255,0.25)', background: 'rgba(10,132,255,0.12)', color: '#0a84ff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><rect x="2" y="7" width="15" height="10" rx="2"/><path d="M17 9l5-2v10l-5-2"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><rect x="2" y="7" width="15" height="10" rx="2"/><path d="M17 9l5-2v10l-5-2"/></svg>{tr.googleMeet}
-                      </button>
-                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+  {/* Mode selector */}
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 14px', borderRadius: 18, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)' }}>
+    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 4 }}>{tr.modeLabel}</div>
+    {(['meet', 'onsite', 'phone'] as const).map(mode => {
+      const labels = { meet: tr.modeMeet, onsite: tr.modeOnsite, phone: tr.modePhone }
+      const isSelected = inputMode === mode
+      return (
+        <div key={mode} onClick={() => setInputMode(mode)}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 12, cursor: 'pointer', transition: 'all 0.15s',
+            background: isSelected ? (mode === 'meet' ? 'rgba(10,132,255,0.12)' : mode === 'onsite' ? 'rgba(48,209,88,0.12)' : 'rgba(255,159,10,0.12)') : 'transparent',
+            border: '1px solid ' + (isSelected ? (mode === 'meet' ? 'rgba(10,132,255,0.25)' : mode === 'onsite' ? 'rgba(48,209,88,0.25)' : 'rgba(255,159,10,0.25)') : 'transparent'),
+          }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid ' + (isSelected ? (mode === 'meet' ? '#0a84ff' : mode === 'onsite' ? '#30d158' : '#ff9f0a') : 'var(--text-dim)'), background: isSelected ? (mode === 'meet' ? '#0a84ff' : mode === 'onsite' ? '#30d158' : '#ff9f0a') : 'transparent', transition: 'all 0.15s', flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: isSelected ? 600 : 400, color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)', transition: 'all 0.15s' }}>{labels[mode]}</span>
+        </div>
+      )
+    })}
+    {inputMode === 'phone' && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,159,10,0.06)', marginTop: 2 }}>
+        <span style={{ fontSize: 10, color: '#ff9f0a' }}>ⓘ</span>
+        <span style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>{tr.modePhoneHint}</span>
+      </div>
+    )}
+  </div>
+
+  {/* Start buttons — mode aware */}
+  {inputMode === 'meet' ? (
+    <button onClick={startTabCall} style={{ height: 44, padding: '0 22px', borderRadius: 22, border: '1px solid rgba(10,132,255,0.25)', background: 'rgba(10,132,255,0.12)', color: '#0a84ff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="15" height="10" rx="2"/><path d="M17 9l5-2v10l-5-2"/></svg>
+      {tr.startMeet}
+    </button>
+  ) : (
+    <button onClick={startMicCall} style={{ height: 44, padding: '0 22px', borderRadius: 22, border: '1px solid ' + (inputMode === 'phone' ? 'rgba(255,159,10,0.25)' : 'rgba(48,209,88,0.25)'), background: inputMode === 'phone' ? 'rgba(255,159,10,0.12)' : 'rgba(48,209,88,0.12)', color: inputMode === 'phone' ? '#ff9f0a' : '#30d158', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      {inputMode === 'phone' ? tr.modePhone : tr.modeOnsite}
+    </button>
+  )}
+</div>
                   )}
                 </div>
               </div>
@@ -1062,9 +1123,15 @@ const energyMap: Record<string, { color: string, pct: number, desc: string }> = 
               )}
             </div>
             <div style={{ padding: 20, borderTop: '1px solid var(--divider)', display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-              <button onClick={() => { setShowBrief(false); startMicCall() }} style={{ width: '100%', height: 48, borderRadius: 24, border: 'none', background: 'var(--text-primary)', color: 'var(--bg)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {tr.startMic}
-              </button>
+              {inputMode === 'meet' ? (
+  <button onClick={() => { setShowBrief(false); startTabCall() }} style={{ width: '100%', height: 48, borderRadius: 24, border: 'none', background: 'var(--text-primary)', color: 'var(--bg)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+    {tr.startMeet}
+  </button>
+) : (
+  <button onClick={() => { setShowBrief(false); startMicCall() }} style={{ width: '100%', height: 48, borderRadius: 24, border: 'none', background: inputMode === 'phone' ? '#ff9f0a' : '#30d158', color: '#000', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+    {inputMode === 'phone' ? tr.modePhone : tr.modeOnsite}
+  </button>
+)}
               <button onClick={() => { setShowBrief(false); startTabCall() }} style={{ width: '100%', height: 44, borderRadius: 22, border: '1px solid rgba(10,132,255,0.3)', background: 'rgba(10,132,255,0.1)', color: '#0a84ff', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {tr.startMeet}
               </button>
